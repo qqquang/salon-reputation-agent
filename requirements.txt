@@ -1,7 +1,3 @@
 python-dotenv
 requests
-google-generativeai
-twilio
 supabase
-anthropic
-openai
