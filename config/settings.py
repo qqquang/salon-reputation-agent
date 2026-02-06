@@ -14,4 +14,8 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 # Project Settings
 SALON_CID = os.getenv("SALON_CID")
+SALON_NAME = os.getenv("SALON_NAME", "N/A")
 SEARCH_QUERY = os.getenv("SEARCH_QUERY")
+
+# Gemini
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")

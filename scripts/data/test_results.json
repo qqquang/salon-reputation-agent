@@ -1,0 +1,21 @@
+[
+  {
+    "input": {
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tOaVMxODJjVEJhY0ZrelZteHdNMjB6UTA4dFltYxAB",
+      "original_text": "Everyone here is so super sweet! They greet you as soon as you walk in and they're very patient with you if you're unsure of what you want (like myself 😅).  I do not get my nails done a lot AT ALL, but I just might try to make it a normal thing with these lovely folks 🖤🥰",
+      "rating": 5,
+      "author_name": "Cricket Davis"
+    },
+    "analysis": {
+      "scout": {
+        "sentiment_score": 10,
+        "risk_flag": false,
+        "category": "Staff Attitude"
+      },
+      "vietnamese_summary": "Khách hàng đánh giá rất cao thái độ siêu dễ thương, sự chào đón niềm nở và đặc biệt là sự kiên nhẫn của nhân viên, khiến họ bày tỏ ý định muốn quay lại làm móng thường xuyên.",
+      "consult": {},
+      "draft_response": "Thank you so much, Cricket Davis, for taking the time to share your wonderful experience!\n\nWe are absolutely thrilled to hear how much you enjoyed your visit. Our team strives to create a welcoming and comfortable atmosphere for everyone—especially for clients who might be unsure of what they want—so your comments about our staff being \"super sweet\" and patient truly mean the world to us.\n\nWe would absolutely love for you to make nail care a normal part of your routine with us! We look forward to welcoming you back and helping you feel pampered again soon.\n\nWarmly,\n\nThe [Salon Name] Team",
+      "processed_at": "now()"
+    }
+  }
+]

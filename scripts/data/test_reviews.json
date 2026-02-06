@@ -1,0 +1,43 @@
+[
+    {
+        "type": "google_reviews_search",
+        "xpath": null,
+        "images": null,
+        "rating": {
+            "value": 5,
+            "rating_max": 5,
+            "rating_type": "Max5",
+            "votes_count": null
+        },
+        "position": "left",
+        "time_ago": "2 weeks ago",
+        "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tOaVMxODJjVEJhY0ZrelZteHdNMjB6UTA4dFltYxAB",
+        "timestamp": "2026-01-19 04:06:28 +00:00",
+        "rank_group": 7,
+        "review_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2tOaVMxODJjVEJhY0ZrelZteHdNMjB6UTA4dFltYxAB!2m1!1s0x0:0x2c5f7d69d015c0cb!3m1!1s2@1:CAIQACodChtycF9oOkNiS182cTBacFkzVmxwM20zQ08tYmc%7C0dQPr3SB8B9%7C?hl=en-US",
+        "local_guide": true,
+        "profile_url": "https://www.google.com/maps/contrib/111685621517409956998/reviews?hl=en-US",
+        "review_text": "Everyone here is so super sweet! They greet you as soon as you walk in and they're very patient with you if you're unsure of what you want (like myself 😅).  I do not get my nails done a lot AT ALL, but I just might try to make it a normal thing with these lovely folks 🖤🥰",
+        "owner_answer": "Aww thank you! We’ve got you every time—even when you’re still deciding 😅🖤💅<br>",
+        "photos_count": 400,
+        "profile_name": "Cricket Davis",
+        "rank_absolute": 7,
+        "reviews_count": 8,
+        "owner_time_ago": "a week ago",
+        "owner_timestamp": "2026-01-26 21:54:55 +00:00",
+        "original_language": "en",
+        "profile_image_url": "https://lh3.googleusercontent.com/a-/ALV-UjVP0BMcab05sUIxzKGFmArC9dlyuE1xSabUHn81kH5OwF9HXl4=s64-c-rp-mo-ba4-br100",
+        "review_highlights": [
+            {
+                "feature": "Price",
+                "assessment": "$60–80"
+            },
+            {
+                "feature": "Services",
+                "assessment": "Foot massages"
+            }
+        ],
+        "original_review_text": null,
+        "original_owner_answer": null
+    }
+]

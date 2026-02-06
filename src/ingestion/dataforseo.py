@@ -47,7 +47,7 @@ class DataForSEOClient:
              # Fallback: Try sending it as 'data_id' if 'cid' failed logic? 
              # But let's assume cid works or we rely on the error.
              print("DEBUG: Task Post failed.")
-             return []
+             return [], None
 
         task_id = post_response
         print(f"DEBUG: Task {task_id} started. Waiting for results...")
@@ -70,11 +70,11 @@ class DataForSEOClient:
                             # Task Complete!
                             items = tasks[0].get('result', [])
                             if items:
-                                return items[0].get('items', [])
-                            return []
+                                return items[0].get('items', []), items[0].get('title')
+                            return [], None
                         elif task_status == 40400:
                             print(f"DEBUG: Task {task_id} returned Not Found.")
-                            return []
+                            return [], None
                         else:
                             # Still running (10100 is queue, 10200 is running)
                             if i % 5 == 0:
@@ -83,7 +83,7 @@ class DataForSEOClient:
                 print(f"Error polling task {task_id}: {e}")
                 
         print(f"DEBUG: Task {task_id} timed out.")
-        return []
+        return [], None
 
     def search_businesses(self, keyword: str):
         """
@@ -141,12 +141,12 @@ class DataForSEOClient:
                 print(f"DataForSEO Error: {result.get('status_message')}")
                 if "reviews" in url:
                      print("Full Response:", json.dumps(result, indent=2))
-                return []
+                return [], None
                 
         except Exception as e:
             print(f"Error making request to {url}: {e}")
             if 'response' in locals():
                 print(response.text)
-            return []
+            return [], None
         
         return []
