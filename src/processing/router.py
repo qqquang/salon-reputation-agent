@@ -9,6 +9,16 @@ class IntelligenceRouter:
             raise ValueError("GEMINI_API_KEY is not set in environment variables.")
         
         self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        
+        # Load prompts configuration
+        try:
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            prompts_path = os.path.join(base_dir, 'config', 'prompts.json')
+            with open(prompts_path, 'r') as f:
+                self.prompts = json.load(f)
+        except Exception as e:
+            print(f"Warning: Could not load prompts.json: {e}")
+            self.prompts = {}
 
     def process_review(self, review_data: dict) -> dict:
         """
@@ -48,16 +58,9 @@ class IntelligenceRouter:
         text = review_data.get('original_text', '')
         rating = review_data.get('rating', 0)
         
-        prompt = f"""
-        Analyze this salon review.
-        Rating: {rating}/5
-        Text: "{text}"
-
-        Return JSON with:
-        - sentiment_score (1-10)
-        - risk_flag (boolean): true if this review requires urgent attention (e.g. infection, rude staff, refund request).
-        - category: One of [Service Quality, Cleanliness, Price, Staff Attitude, Wait Time, Other].
-        """
+        # Load prompt from config or fallback
+        prompt_template = self.prompts.get('scout', "Analyze this review: {text}")
+        prompt = prompt_template.format(text=text, rating=rating)
         
         try:
             response = self.client.models.generate_content(
@@ -77,12 +80,8 @@ class IntelligenceRouter:
         text = review_data.get('original_text', '')
         category = scout_result.get('category')
         
-        prompt = f"""
-        Summarize this review in 1 sentence in Vietnamese for a nail salon owner.
-        Focus on the main complaint or compliment.
-        Category: {category}
-        Review: "{text}"
-        """
+        prompt_template = self.prompts.get('translate', "Summarize in Vietnamese: {text}")
+        prompt = prompt_template.format(text=text, category=category)
         
         try:
             response = self.client.models.generate_content(
@@ -100,14 +99,8 @@ class IntelligenceRouter:
         """
         text = review_data.get('original_text', '')
         
-        prompt = f"""
-        You are a crisis management consultant for a salon.
-        Analyze this negative review: "{text}"
-        
-        Return JSON with:
-        - root_cause: What exactly went wrong?
-        - recommended_action: What should the owner do internally?
-        """
+        prompt_template = self.prompts.get('consult', "Analyze this review: {text}")
+        prompt = prompt_template.format(text=text)
         
         try:
             response = self.client.models.generate_content(
@@ -125,16 +118,11 @@ class IntelligenceRouter:
         """
         text = review_data.get('original_text', '')
         author = review_data.get('author_name', 'client')
+        category = scout_result.get('category')
+        salon_name = review_data.get('salon_name', 'our salon')
         
-        prompt = f"""
-        Write a polite, professional response to this salon review.
-        Author: {author}
-        Review: "{text}"
-        Context: The customer is {scout_result.get('category')}.
-        
-        If positive: Thank them warmly and invite them back.
-        If negative: Apologize sincerely, acknowledge the specific issue, and ask them to contact the manager directly to resolve it. Do not be defensive.
-        """
+        prompt_template = self.prompts.get('draft', "Write a response to: {text}")
+        prompt = prompt_template.format(text=text, author=author, category=category, salon_name=salon_name)
         
         try:
             response = self.client.models.generate_content(

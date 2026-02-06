@@ -52,7 +52,8 @@ def test_router():
                 "review_id": review_id,
                 "original_text": text,
                 "rating": int(rating) if rating else 5,
-                "author_name": author
+                "author_name": author,
+                "salon_name": "LuxeNails"
             }
             
             try:
