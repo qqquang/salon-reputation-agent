@@ -39,5 +39,183 @@
         ],
         "original_review_text": null,
         "original_owner_answer": null
+    },
+    {
+        "type": "google_reviews_search",
+        "xpath": null,
+        "images": null,
+        "rating": {
+            "value": 1,
+            "rating_max": 5,
+            "rating_type": "Max5",
+            "votes_count": null
+        },
+        "position": "left",
+        "time_ago": "2 weeks ago",
+        "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2kxVVIybE5RV0ZFVFRaR1YybFFMVGhUZEZSS1VrRRAB",
+        "timestamp": "2026-01-18 00:12:07 +00:00",
+        "rank_group": 7,
+        "review_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2kxVVIybE5RV0ZFVFRaR1YybFFMVGhUZEZSS1VrRRAB!2m1!1s0x0:0x2c5f7d69d015c0cb!3m1!1s2@1:CAIQACodChtycF9oOi1UR2lNQWFETTZGV2lQLThTdFRKUkE%7C0dQ1KMQ7ymq%7C?hl=en-US",
+        "local_guide": false,
+        "profile_url": "https://www.google.com/maps/contrib/103779636470475567699/reviews?hl=en-US",
+        "review_text": "Horrible service from zoie on 01/17/2026  she was so rude and short she acted like she didn’t even want to touch my feet!! Me & my sister weren’t offered any drinks or anything ! I won’t be coming back here I don’t feel welcomed at all I’m not sure if it’s a race issue with black people, but what they fail to realize is most of their  clientele comes from black people so I will gladly take my BLACK dollars somewhere else and spend it where it makes sense🤏🏽  zero out of 10 would not recommend",
+        "owner_answer": "We’re really sorry you felt this way. That’s not the experience we want for anyone.",
+        "photos_count": null,
+        "profile_name": "Mariah Brown",
+        "rank_absolute": 7,
+        "reviews_count": 1,
+        "owner_time_ago": "2 weeks ago",
+        "owner_timestamp": "2026-01-23 20:30:46 +00:00",
+        "original_language": "en",
+        "profile_image_url": "https://lh3.googleusercontent.com/a-/ALV-UjXfXtN-Xp_DQ5XOROAvf56JqYR1pS6bCN64JSka3TGKnbwQLGE=s64-c-rp-mo-br100",
+        "review_highlights": [
+            {
+                "feature": "Price",
+                "assessment": "$20–40"
+            },
+            {
+                "feature": "Services",
+                "assessment": "Pedicure"
+            }
+        ],
+        "original_review_text": null,
+        "original_owner_answer": null
+    },
+    {
+        "type": "google_reviews_search",
+        "xpath": null,
+        "images": null,
+        "rating": {
+            "value": 2,
+            "rating_max": 5,
+            "rating_type": "Max5",
+            "votes_count": null
+        },
+        "position": "left",
+        "time_ago": "2 weeks ago",
+        "review_id": "Ci9DQUlRQUNvZENodHljRjlvT21WME5tNVFNM1Z4YWs0MmFXNWZiMW93WW1wNGJGRRAB",
+        "timestamp": "2026-01-21 22:33:21 +00:00",
+        "rank_group": 21,
+        "review_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21WME5tNVFNM1Z4YWs0MmFXNWZiMW93WW1wNGJGRRAB!2m1!1s0x0:0x2c5f7d69d015c0cb!3m1!1s2@1:CAIQACodChtycF9oOmV0Nm5QM3Vxak42aW5fb1owYmp4bFE%7C0dRKFlHifT-%7C?hl=en-US",
+        "local_guide": false,
+        "profile_url": "https://www.google.com/maps/contrib/112937434872040409896/reviews?hl=en-US",
+        "review_text": "Bait and switch on prices",
+        "owner_answer": "We’re sorry you feel this way. Our prices are posted, but we’re happy to explain 💅",
+        "photos_count": null,
+        "profile_name": "Kevin Peil",
+        "rank_absolute": 21,
+        "reviews_count": 1,
+        "owner_time_ago": "2 weeks ago",
+        "owner_timestamp": "2026-01-23 20:30:47 +00:00",
+        "original_language": "en",
+        "profile_image_url": "https://lh3.googleusercontent.com/a/ACg8ocKLa7aVXtj8eLrOjcRFn918WMlof5TBQ1Zy0QK11SMeQAjDFA=s64-c-rp-mo-br100",
+        "review_highlights": null,
+        "original_review_text": null,
+        "original_owner_answer": null
+    },
+    {
+        "type": "google_reviews_search",
+        "xpath": null,
+        "images": [
+            {
+                "alt": null,
+                "url": null,
+                "type": "images_element",
+                "image_url": "https://lh3.googleusercontent.com/geougc-cs/ABOP9pueBh2hnTpWUGAiBWBbCAzjgHOvtDasMPzrrgbO-Rjn_X-juFnH58DnG7_iFdvvGUsM1OmNba_Qb8nYbNzrUtSKWkyHcAjKRYU7eubKI9lSdKK0w3cJXIdDpEN2VLb9r9QA4vrNx0NdJgo"
+            },
+            {
+                "alt": null,
+                "url": null,
+                "type": "images_element",
+                "image_url": "https://lh3.googleusercontent.com/geougc-cs/ABOP9pu1VkYbpiLgmxj7ZHa3P1d72O_RbG60TKJe6pyZ8O0SLwxyAteP2aVvqa5KrhHw6f_aftStjzaghTttoVhdabumRhg05DIOswdz5VE2UB8xREypnAMWEtCZ3KaKqVZX7GhvJLbQGKPVtJE"
+            },
+            {
+                "alt": null,
+                "url": null,
+                "type": "images_element",
+                "image_url": "https://lh3.googleusercontent.com/geougc-cs/ABOP9puzwGf7cunYMlTyS4ycrC9t-9iEp2x-_-5xsH3Svd1R_CR1Y_VwyfC2uUZyItG83haTZ7XTwdnMd60cjyLR7XrOAXCqr0J2QZKEuZMZtgamjw3lBt227MAbMFOeNEuJdX3pSw0ZEa8yj4tO"
+            },
+            {
+                "alt": null,
+                "url": null,
+                "type": "images_element",
+                "image_url": "https://lh3.googleusercontent.com/geougc-cs/ABOP9ptc47y5dY7N-yAyp65zEdgMFYDmb3CceXis46Vomswzj_1zp8bwWhSTtiL8Vnkt5yPnvSMGFFBPFqwIkb2IwCIv2RxJqrxREnGodoxFO0CHpsHWfjgXbk_WvOyrGD3UCw8c5rNy0HrUNGmG"
+            },
+            {
+                "alt": null,
+                "url": null,
+                "type": "images_element",
+                "image_url": "https://lh3.googleusercontent.com/geougc-cs/ABOP9psjF1BDw6xQE8yKVyKEdfW3JRt1QG_RIx_OcTH2KGCEg-iQhMlhJ8AvWrEtwYYL0mX125GKZkQVdtKPDwb7gc3_ZNT8Er61ATYwnkEbskQEcjb_Dmwou3Mv3MJNqbQejId-v4J0F4jf7-5h"
+            },
+            {
+                "alt": null,
+                "url": null,
+                "type": "images_element",
+                "image_url": "https://lh3.googleusercontent.com/geougc-cs/ABOP9puxaXFm-X0Az96EweH9bMmXddp0r18mtDmhHtLlSsIDntfvQPJ5OoY0YTAzu_10aRaWgMQlt9MWys87YzO5SRcaSWgD9PJUXvkDIc8OigHduJ-19jb2Okxx_snXrCAWnZR9H4f0tvgckgka"
+            },
+            {
+                "alt": null,
+                "url": null,
+                "type": "images_element",
+                "image_url": "https://lh3.googleusercontent.com/geougc-cs/ABOP9ptttGUtYxMWNmp7YrikYt2tmPv9g4_W6YbtGgqE_7BdFe7IUq7NhExdFmEfosldOTwbGaBCkWGRisbLw290cabDATIPAc-njin_FqIwFNCyLctc4Sp7Tit8Ehzxr-OA7MJLDhmBPaY2buEd"
+            },
+            {
+                "alt": null,
+                "url": null,
+                "type": "images_element",
+                "image_url": "https://lh3.googleusercontent.com/geougc-cs/ABOP9ptPLx2LKmrs20H7PEQMld9p0FLRx1kH-Kxyu_NiUBd4hFKKnRzRiZljnth0evC7bwB0gHlN-DghYwW4l-_HHmglgTCGg1LsD_IAxDWS-YB4boQFaiBIxG-ZzLbMHpKgm9MuV1EU-sIFtLZ3"
+            },
+            {
+                "alt": null,
+                "url": null,
+                "type": "images_element",
+                "image_url": "https://lh3.googleusercontent.com/geougc-cs/ABOP9ptfetgWeuzU7J-vaEO_dzezm0EEtQdceYkKpusL_FtPZCHVHus8Zb79ExD6l1n2Acuo8u953YYBdht_pnsD45U2LgG70IBOuhy1RHs4YTRGuHgRkDsu8CMN5t4EaMG4E5BmZhO4NIu3QBma"
+            },
+            {
+                "alt": null,
+                "url": null,
+                "type": "images_element",
+                "image_url": "https://lh3.googleusercontent.com/geougc-cs/ABOP9pvz7VtwQr1gq5xPbW9PWTt90ZGqNFUD9hAHLA0fDs2Bo7KvkT3V7SHy4I0GaVGffyPEVl12cGak4VXCcLPMeUv08StnlVIIi2Tp54altpZwF3IBBUQEgHe9Lweyn9WiymIJ26LQj9ANNXhl"
+            },
+            {
+                "alt": null,
+                "url": null,
+                "type": "images_element",
+                "image_url": "https://lh3.googleusercontent.com/geougc-cs/ABOP9ptUYOMtOOOPprc69BrkZhBNH77SJ_etdA6GDhyWRvdXYaykeIJjMbQxINBMkhjMMcMyGLOQB_aBMXuWG4DyVsUENaRj1-wvFLU5Q5gPzqfYtXicoAlYxrTRxzdxrS37594jMwgAxZnvAt4"
+            },
+            {
+                "alt": null,
+                "url": null,
+                "type": "images_element",
+                "image_url": "https://lh3.googleusercontent.com/geougc-cs/ABOP9pvrPf6pKnastW8HcrLPbJPnMmbqgXFSekMk6_-tz3BzSPouryVyaat_ED0IuViLHk608koHydLiBe86wGDV2pCfw6rwvvEAfgUtHV-EUBqxSjia5mlIvl--idD8ETkcOW2LtowjIryJEbY"
+            }
+        ],
+        "rating": {
+            "value": 5,
+            "rating_max": 5,
+            "rating_type": "Max5",
+            "votes_count": null
+        },
+        "position": "left",
+        "time_ago": "a week ago",
+        "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tWQ1JsZDFSVWhOZDI5MVRFdFJXbTUyWjBrelRuYxAB",
+        "timestamp": "2026-01-24 01:12:52 +00:00",
+        "rank_group": 1,
+        "review_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2tWQ1JsZDFSVWhOZDI5MVRFdFJXbTUyWjBrelRuYxAB!2m1!1s0x0:0x2c5f7d69d015c0cb!3m1!1s2@1:CAIQACodChtycF9oOkVCRld1RUhNd291TEtRWm52Z0kzTnc%7C0dS0mJLUe0k%7C?hl=en-US",
+        "local_guide": true,
+        "profile_url": "https://www.google.com/maps/contrib/101731288671161081027/reviews?hl=en-US",
+        "review_text": "I was super excited for a new nail spot on west end of Belleville.  I have gone to mi nails O'Fallon location in the past but didn't have the greatest experience but I got nails done then.\n\nToday I called earlier to book for a spa pedi with anyone.  Not realizing Yenni is one highly recommended, but she only does nails not toes.  I had Anna (sp) who was kind and gentle. She took her time and listened.\n\nThe gentleman at the front is very nice and accommodating. He made sure I had a book to look at color options.   They have 9 pedi chairs and 9 nail tables. About 7 big screen tvs to view while being pampered.\nPrices for the pedicures are about avg/reasonable.\n\nThey were running a sale until\nFeb 2? About 40% off pedicures and there's more too. The spa is super clean and they did a nice job on the interior! I will definitely be back!! Great job mi nail!!",
+        "owner_answer": null,
+        "photos_count": 44,
+        "profile_name": "Vivid Simplicity",
+        "rank_absolute": 1,
+        "reviews_count": 18,
+        "owner_time_ago": null,
+        "owner_timestamp": null,
+        "original_language": "en",
+        "profile_image_url": "https://lh3.googleusercontent.com/a-/ALV-UjVaLybA_fh-0FbfaZylE8EBYJm7WLcdOsRNhxhbH4IOnC9msAY=s64-c-rp-mo-ba3-br100",
+        "review_highlights": null,
+        "original_review_text": null,
+        "original_owner_answer": null
     }
 ]

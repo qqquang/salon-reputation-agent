@@ -13,9 +13,72 @@
         "risk_flag": false,
         "category": "Staff Attitude"
       },
-      "vietnamese_summary": "Khách rất yêu quý thái độ ngọt ngào của đội ngũ nhân viên, đặc biệt là cách họ **luôn chào đón ngay khi khách bước vào** và **rất kiên nhẫn** với những khách còn phân vân, khiến khách muốn ghé thăm tiệm thường xuyên hơn đấy ạ!",
+      "vietnamese_summary": "Nhân viên cực kỳ ngọt ngào, kiên nhẫn, chào đón khách ngay khi vào.",
       "consult": {},
-      "draft_response": "Cricket, your review just made our day! We pride ourselves on being patient and welcoming so everyone feels comfortable enjoying their nail services here ✨. We’d absolutely love for you to tag us @LuxeNails on Instagram if you share your beautiful look! 💅\n\nBest, Manager & The Team",
+      "draft_response": "Wow, Cricket, thank you so much for this super sweet review! Making sure everyone feels welcomed and comfortable the moment they walk in is our absolute top priority. We are thrilled you might make this a habit, and we can’t wait to see you shine again at Luxe Nails! 💅✨",
+      "processed_at": "now()"
+    }
+  },
+  {
+    "input": {
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2kxVVIybE5RV0ZFVFRaR1YybFFMVGhUZEZSS1VrRRAB",
+      "original_text": "Horrible service from zoie on 01/17/2026  she was so rude and short she acted like she didn’t even want to touch my feet!! Me & my sister weren’t offered any drinks or anything ! I won’t be coming back here I don’t feel welcomed at all I’m not sure if it’s a race issue with black people, but what they fail to realize is most of their  clientele comes from black people so I will gladly take my BLACK dollars somewhere else and spend it where it makes sense🤏🏽  zero out of 10 would not recommend",
+      "rating": 1,
+      "author_name": "Mariah Brown",
+      "salon_name": "LuxeNails"
+    },
+    "analysis": {
+      "scout": {
+        "sentiment_score": 1,
+        "risk_flag": true,
+        "category": "Staff Attitude"
+      },
+      "vietnamese_summary": "Zoie rất thô lỗ, không mời nước, khách cảm thấy bị phân biệt chủng tộc.",
+      "consult": {
+        "root_cause": "Attitude and hospitality failure",
+        "recommended_action": "Retrain all staff on mandatory client service scripts."
+      },
+      "draft_response": "We are genuinely upset to hear your recent pedicure visit felt short and unwelcome, Mariah. We absolutely hear your concerns about staff attitude and racial bias, and we need to fix this immediately—please DM us so we can personally address your experience. We truly value your business and hope to restore your trust in @LuxeNails. Stay shining! ✨",
+      "processed_at": "now()"
+    }
+  },
+  {
+    "input": {
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT21WME5tNVFNM1Z4YWs0MmFXNWZiMW93WW1wNGJGRRAB",
+      "original_text": "Bait and switch on prices",
+      "rating": 2,
+      "author_name": "Kevin Peil",
+      "salon_name": "LuxeNails"
+    },
+    "analysis": {
+      "scout": {
+        "sentiment_score": 2,
+        "risk_flag": false,
+        "category": "Price"
+      },
+      "vietnamese_summary": "Giá cả bị thay đổi, khác so với quảng cáo ban đầu.",
+      "consult": {},
+      "draft_response": "Thank you for sharing your experience, Kevin! We hear that you were unhappy with the pricing transparency and truly want to make things right, so please slide into our DMs immediately so we can clarify any charges. We appreciate your feedback and hope to welcome you back to LuxeNails soon! 💅✨",
+      "processed_at": "now()"
+    }
+  },
+  {
+    "input": {
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tWQ1JsZDFSVWhOZDI5MVRFdFJXbTUyWjBrelRuYxAB",
+      "original_text": "I was super excited for a new nail spot on west end of Belleville.  I have gone to mi nails O'Fallon location in the past but didn't have the greatest experience but I got nails done then.\n\nToday I called earlier to book for a spa pedi with anyone.  Not realizing Yenni is one highly recommended, but she only does nails not toes.  I had Anna (sp) who was kind and gentle. She took her time and listened.\n\nThe gentleman at the front is very nice and accommodating. He made sure I had a book to look at color options.   They have 9 pedi chairs and 9 nail tables. About 7 big screen tvs to view while being pampered.\nPrices for the pedicures are about avg/reasonable.\n\nThey were running a sale until\nFeb 2? About 40% off pedicures and there's more too. The spa is super clean and they did a nice job on the interior! I will definitely be back!! Great job mi nail!!",
+      "rating": 5,
+      "author_name": "Vivid Simplicity",
+      "salon_name": "LuxeNails"
+    },
+    "analysis": {
+      "scout": {
+        "sentiment_score": 10,
+        "risk_flag": false,
+        "category": "Service Quality"
+      },
+      "vietnamese_summary": "Anna nhẹ nhàng, nhân viên thân thiện. Tiệm sạch sẽ, trang trí đẹp. Khách hài lòng, sẽ quay lại.",
+      "consult": {},
+      "draft_response": "Vivid Simplicity, we are absolutely delighted that you enjoyed your recent spa pedi and felt so pampered by Anna and our friendly front desk staff! Nothing makes us happier than knowing you loved our clean, trendy interior and those amazing prices ✨💅. Stay shining, and we look forward to welcoming you back soon to @LuxeNails!",
       "processed_at": "now()"
     }
   }

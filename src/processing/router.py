@@ -122,7 +122,12 @@ class IntelligenceRouter:
         salon_name = review_data.get('salon_name', 'our salon')
         
         prompt_template = self.prompts.get('draft', "Write a response to: {text}")
-        prompt = prompt_template.format(text=text, author=author, category=category, salon_name=salon_name)
+        prompt = prompt_template.format(
+            text=text, 
+            author=author, 
+            category=category, 
+            salon_name=salon_name
+        )
         
         try:
             response = self.client.models.generate_content(

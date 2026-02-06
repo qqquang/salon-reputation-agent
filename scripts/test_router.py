@@ -29,12 +29,20 @@ def test_router():
         print("-" * 30)
 
         for i, case in enumerate(test_cases):
-            # Support both wrapped format (with 'data' key) and raw format
-            data = case.get('data', case) 
+            # Support both wrapped format (with 'data' or 'input' key) and raw format
+            data = case.get('data') or case.get('input') or case 
             
             # Normalize data
-            text = data.get('review_text') or data.get('original_review_text') or ""
-            author = data.get('profile_name', 'Test User')
+            # Support multiple key variations
+            text = (data.get('review_text') or 
+                   data.get('original_review_text') or 
+                   data.get('original_text') or 
+                   "")
+                   
+            author = (data.get('profile_name') or 
+                     data.get('author_name') or 
+                     'Test User')
+            
             review_id = data.get('review_id') or data.get('id') or f"test_{i}"
             
             # Handle rating
