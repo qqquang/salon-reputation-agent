@@ -13,9 +13,9 @@
         "risk_flag": false,
         "category": "Staff Attitude"
       },
-      "vietnamese_summary": "Nhân viên cực kỳ ngọt ngào, kiên nhẫn, chào đón khách ngay khi vào.",
+      "vietnamese_summary": "Nhân viên siêu ngọt ngào, kiên nhẫn, chào đón ngay khi khách bước vào.",
       "consult": {},
-      "draft_response": "Wow, Cricket, thank you so much for this super sweet review! Making sure everyone feels welcomed and comfortable the moment they walk in is our absolute top priority. We are thrilled you might make this a habit, and we can’t wait to see you shine again at Luxe Nails! 💅✨",
+      "draft_response": "Wow, Cricket, this makes our day! We pride ourselves on creating a super welcoming vibe so everyone feels comfortable deciding on their perfect manicure or fresh set. We can't wait to see you again soon at Luxe Nails! 🖤✨",
       "processed_at": "now()"
     }
   },
@@ -30,15 +30,12 @@
     "analysis": {
       "scout": {
         "sentiment_score": 1,
-        "risk_flag": true,
+        "risk_flag": false,
         "category": "Staff Attitude"
       },
-      "vietnamese_summary": "Zoie rất thô lỗ, không mời nước, khách cảm thấy bị phân biệt chủng tộc.",
-      "consult": {
-        "root_cause": "Attitude and hospitality failure",
-        "recommended_action": "Retrain all staff on mandatory client service scripts."
-      },
-      "draft_response": "We are genuinely upset to hear your recent pedicure visit felt short and unwelcome, Mariah. We absolutely hear your concerns about staff attitude and racial bias, and we need to fix this immediately—please DM us so we can personally address your experience. We truly value your business and hope to restore your trust in @LuxeNails. Stay shining! ✨",
+      "vietnamese_summary": "Dịch vụ tệ, Zoie thô lỗ, khách cáo buộc phân biệt chủng tộc.",
+      "consult": {},
+      "draft_response": "Mariah, thank you for sharing your visit details regarding the service you received from Zoie on January 17th. We hear that you and your sister felt extremely unwelcome and were unhappy with the attitude and lack of hospitality provided. We take all concerns about service quality and respect seriously, so please check your direct messages from us immediately so we can resolve this situation and restore your faith in Luxe Nails.",
       "processed_at": "now()"
     }
   },
@@ -56,9 +53,9 @@
         "risk_flag": false,
         "category": "Price"
       },
-      "vietnamese_summary": "Giá cả bị thay đổi, khác so với quảng cáo ban đầu.",
+      "vietnamese_summary": "Khách phàn nàn cửa hàng 'câu khách rồi đổi giá'.",
       "consult": {},
-      "draft_response": "Thank you for sharing your experience, Kevin! We hear that you were unhappy with the pricing transparency and truly want to make things right, so please slide into our DMs immediately so we can clarify any charges. We appreciate your feedback and hope to welcome you back to LuxeNails soon! 💅✨",
+      "draft_response": "We genuinely appreciate you taking the time to share your feedback, Kevin. I hear that you were unhappy with the transparency regarding our pricing structure, and we want to ensure every visit meets your expectations. Please message us privately right away so we can resolve the confusion and welcome you back to LuxeNails.",
       "processed_at": "now()"
     }
   },
@@ -76,9 +73,9 @@
         "risk_flag": false,
         "category": "Service Quality"
       },
-      "vietnamese_summary": "Anna nhẹ nhàng, nhân viên thân thiện. Tiệm sạch sẽ, trang trí đẹp. Khách hài lòng, sẽ quay lại.",
+      "vietnamese_summary": "Anna và lễ tân rất tốt. Cơ sở sạch đẹp, khách chắc chắn sẽ quay lại.",
       "consult": {},
-      "draft_response": "Vivid Simplicity, we are absolutely delighted that you enjoyed your recent spa pedi and felt so pampered by Anna and our friendly front desk staff! Nothing makes us happier than knowing you loved our clean, trendy interior and those amazing prices ✨💅. Stay shining, and we look forward to welcoming you back soon to @LuxeNails!",
+      "draft_response": "This review totally made our day—we are so glad Anna gave you the relaxing spa pedicure you deserved! We strive to keep our space sparkling clean and ensure every visit feels like a true pampering session. Stay shining, and we can't wait to see you back at mi nail soon! ✨💖",
       "processed_at": "now()"
     }
   }

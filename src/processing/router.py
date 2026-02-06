@@ -120,13 +120,21 @@ class IntelligenceRouter:
         author = review_data.get('author_name', 'client')
         category = scout_result.get('category')
         salon_name = review_data.get('salon_name', 'our salon')
-        
+
+        # Conditional Emoji Logic
+        sentiment_score = scout_result.get('sentiment_score', 5)
+        if sentiment_score < 7:
+            emoji_instruction = "DO NOT use any emojis."
+        else:
+            emoji_instruction = "Use 1-2 appropriate emojis."
+
         prompt_template = self.prompts.get('draft', "Write a response to: {text}")
         prompt = prompt_template.format(
             text=text, 
             author=author, 
             category=category, 
-            salon_name=salon_name
+            salon_name=salon_name,
+            emoji_instruction=emoji_instruction
         )
         
         try:

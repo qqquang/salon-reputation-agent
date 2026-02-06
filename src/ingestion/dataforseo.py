@@ -25,7 +25,7 @@ class DataForSEOClient:
             'Content-Type': 'application/json'
         }
 
-    def fetch_reviews(self, cid: str, depth: int = 700):
+    def fetch_reviews(self, cid: str, depth: int = 100):
         """
         Fetches reviews using the Task Post/Get (Async) method.
         This handles cases where data is not in 'Live' cache.
