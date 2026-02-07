@@ -64,8 +64,15 @@ def test_router():
                 "salon_name": "LuxeNails"
             }
             
+            # Synthetic History for testing context
+            mock_history = [
+                "Thanks for visiting! We love your style. @LuxeNails",
+                "So glad you enjoyed the pedicure! Hope to see you soon.",
+                "We are sorry to hear about the wait time. Please DM us."
+            ]
+            
             try:
-                result = router.process_review(review_data)
+                result = router.process_review(review_data, history=mock_history)
                 
                 # Structure output for the results file
                 output_record = {

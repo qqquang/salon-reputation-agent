@@ -102,7 +102,9 @@ class SimpleIngestionAgent:
 
             # 2. AI Analysis (The Brain)
             print(f" - Analyzing review...")
-            analysis = self.router.process_review(review_record)
+            # Fetch recent history for context
+            history = db.get_recent_responses(limit=5)
+            analysis = self.router.process_review(review_record, history)
             
             # 3. Merge Analysis
             review_record.update({
@@ -120,5 +122,18 @@ class SimpleIngestionAgent:
             print(f" - Saved.")
 
 if __name__ == "__main__":
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Salon Reputation Agent")
+    parser.add_argument("--once", action="store_true", help="Run a single ingestion cycle and exit.")
+    args = parser.parse_args()
+
     agent = SimpleIngestionAgent()
-    agent.run()
+    
+    if args.once:
+        print("Running in SINGLE-SHOT mode...")
+        agent.ingest_reviews()
+        print("Cycle complete. Exiting.")
+    else:
+        print("Running in DAEMON mode (Press Ctrl+C to stop)...")
+        agent.run()

@@ -47,7 +47,24 @@ class SupabaseClient:
             print(f"Updated review {review_id} status to {status}")
         except Exception as e:
             print(f"Error updating review status: {e}")
+        except Exception as e:
+            print(f"Error updating review status: {e}")
             raise
+
+    def get_recent_responses(self, limit: int = 5) -> list[str]:
+        """Fetches the last 'limit' draft responses to provide context."""
+        try:
+            response = self.client.table("reviews") \
+                .select("draft_response") \
+                .neq("draft_response", "null") \
+                .order("created_at", desc=True) \
+                .limit(limit) \
+                .execute()
+            
+            return [r['draft_response'] for r in response.data if r.get('draft_response')]
+        except Exception as e:
+            print(f"Error fetching recent responses: {e}")
+            return []
 
 # Global instance for easy access
 db = SupabaseClient()

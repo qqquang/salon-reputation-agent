@@ -13,9 +13,9 @@
         "risk_flag": false,
         "category": "Staff Attitude"
       },
-      "vietnamese_summary": "Nhân viên siêu ngọt ngào, kiên nhẫn, chào đón ngay khi khách bước vào.",
+      "vietnamese_summary": "Nhân viên siêu dễ thương, chào đón nhanh, rất kiên nhẫn với khách.",
       "consult": {},
-      "draft_response": "Wow, Cricket, this makes our day! We pride ourselves on creating a super welcoming vibe so everyone feels comfortable deciding on their perfect manicure or fresh set. We can't wait to see you again soon at Luxe Nails! 🖤✨",
+      "draft_response": "Making the switch to regular self-care is such a win! We pride ourselves on offering a super sweet and patient nail salon experience, especially for those who are unsure of what they want. Stay shining, and we hope to see you back at @LuxeNails soon! 🖤✨",
       "processed_at": "now()"
     }
   },
@@ -33,9 +33,9 @@
         "risk_flag": false,
         "category": "Staff Attitude"
       },
-      "vietnamese_summary": "Dịch vụ tệ, Zoie thô lỗ, khách cáo buộc phân biệt chủng tộc.",
+      "vietnamese_summary": "Zoie thô lỗ, không muốn chạm chân khách. Khách cảm thấy bị phân biệt chủng tộc.",
       "consult": {},
-      "draft_response": "Mariah, thank you for sharing your visit details regarding the service you received from Zoie on January 17th. We hear that you and your sister felt extremely unwelcome and were unhappy with the attitude and lack of hospitality provided. We take all concerns about service quality and respect seriously, so please check your direct messages from us immediately so we can resolve this situation and restore your faith in Luxe Nails.",
+      "draft_response": "We are heartbroken to hear that your recent pedicure experience left you feeling unwelcome due to staff attitude. We take your concerns about feeling unwelcome and service bias incredibly seriously and need to address this immediately. Please send us a direct message so we can properly rectify this situation and restore your trust in LuxeNails.",
       "processed_at": "now()"
     }
   },
@@ -49,13 +49,16 @@
     },
     "analysis": {
       "scout": {
-        "sentiment_score": 2,
-        "risk_flag": false,
+        "sentiment_score": 3,
+        "risk_flag": true,
         "category": "Price"
       },
-      "vietnamese_summary": "Khách phàn nàn cửa hàng 'câu khách rồi đổi giá'.",
-      "consult": {},
-      "draft_response": "We genuinely appreciate you taking the time to share your feedback, Kevin. I hear that you were unhappy with the transparency regarding our pricing structure, and we want to ensure every visit meets your expectations. Please message us privately right away so we can resolve the confusion and welcome you back to LuxeNails.",
+      "vietnamese_summary": "Khách tố cáo thay đổi giá, nghi ngờ lừa đảo.",
+      "consult": {
+        "root_cause": "Misaligned pricing systems",
+        "recommended_action": "Synchronize all pricing databases"
+      },
+      "draft_response": "We are truly sorry to hear that the final cost felt like a bait and switch on our prices. Transparency is key for us, and we want to review this specific billing issue right away. Please DM us so we can make things right and ensure you stay shining with @LuxeNails.",
       "processed_at": "now()"
     }
   },
@@ -73,9 +76,9 @@
         "risk_flag": false,
         "category": "Service Quality"
       },
-      "vietnamese_summary": "Anna và lễ tân rất tốt. Cơ sở sạch đẹp, khách chắc chắn sẽ quay lại.",
+      "vietnamese_summary": "Anna nhẹ nhàng, lễ tân chu đáo. Cửa tiệm sạch, giá hợp lý, khách sẽ trở lại.",
       "consult": {},
-      "draft_response": "This review totally made our day—we are so glad Anna gave you the relaxing spa pedicure you deserved! We strive to keep our space sparkling clean and ensure every visit feels like a true pampering session. Stay shining, and we can't wait to see you back at mi nail soon! ✨💖",
+      "draft_response": "What an awesome review! We love knowing that Anna took great care of you during your spa pedicure and that you noticed how sparkling clean our new Belleville space is. We appreciate you sharing your experience and look forward to welcoming you back to mi nail soon! 💅✨",
       "processed_at": "now()"
     }
   }

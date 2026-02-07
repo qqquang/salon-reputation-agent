@@ -20,7 +20,7 @@ class IntelligenceRouter:
             print(f"Warning: Could not load prompts.json: {e}")
             self.prompts = {}
 
-    def process_review(self, review_data: dict) -> dict:
+    def process_review(self, review_data: dict, history: list[str] = None) -> dict:
         """
         Main entry point for processing a review.
         Orchestrates the analysis pipeline using Gemini.
@@ -38,7 +38,7 @@ class IntelligenceRouter:
                 consult_result = self._consult(review_data)
 
             # 4. Draft: Create a response
-            draft_response = self._draft(review_data, scout_result)
+            draft_response = self._draft(review_data, scout_result, history)
 
             return {
                 "scout": scout_result,
@@ -112,7 +112,7 @@ class IntelligenceRouter:
         except Exception:
             return {}
 
-    def _draft(self, review_data: dict, scout_result: dict) -> str:
+    def _draft(self, review_data: dict, scout_result: dict, history: list[str] = None) -> str:
         """
         Step 4: Draft a polite, professional response.
         """
@@ -128,13 +128,17 @@ class IntelligenceRouter:
         else:
             emoji_instruction = "Use 1-2 appropriate emojis."
 
+        # Format history for prompt
+        history_str = "\n".join([f"- {h}" for h in (history or [])]) if history else "None."
+
         prompt_template = self.prompts.get('draft', "Write a response to: {text}")
         prompt = prompt_template.format(
             text=text, 
             author=author, 
             category=category, 
             salon_name=salon_name,
-            emoji_instruction=emoji_instruction
+            emoji_instruction=emoji_instruction,
+            context_history=history_str
         )
         
         try:
