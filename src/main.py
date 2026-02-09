@@ -69,6 +69,13 @@ class SimpleIngestionAgent:
             if salon_name in ["Unknown Salon", "My Salon", "N/A"] or not salon_name:
                 print(f"Auto-detected Salon Name: {fetched_name}")
                 salon_name = fetched_name
+        
+        # Fallback: If still unknown, check DB for existing name for this CID
+        if salon_name in ["Unknown Salon", "My Salon", "N/A"] or not salon_name:
+             existing_name = db.get_salon_name(cid)
+             if existing_name:
+                 print(f"Fallback Salon Name from DB: {existing_name}")
+                 salon_name = existing_name
                 
         print(f"Found {len(reviews)} reviews for {salon_name}.")
 
@@ -90,7 +97,7 @@ class SimpleIngestionAgent:
                 "salon_name": salon_name,
                 "author_name": review.get('profile_name', 'Anonymous'),
                 "rating": review.get('rating', {}).get('value', 0),
-                "original_text": review.get('review_text', ''),
+                "original_text": review.get('review_text') or '',
                 "owner_response": review.get('owner_answer', ''),
                 "review_url": review.get('review_url', ''),
                 "review_date": review.get('timestamp'), # Accurate review time

@@ -47,8 +47,6 @@ class SupabaseClient:
             print(f"Updated review {review_id} status to {status}")
         except Exception as e:
             print(f"Error updating review status: {e}")
-        except Exception as e:
-            print(f"Error updating review status: {e}")
             raise
 
     def get_recent_responses(self, limit: int = 5) -> list[str]:
@@ -65,6 +63,26 @@ class SupabaseClient:
         except Exception as e:
             print(f"Error fetching recent responses: {e}")
             return []
+
+    def get_salon_name(self, cid: str) -> str:
+        """
+        Attempts to find a valid salon name for the given CID from existing records.
+        Returns None if not found or if only placeholders exist.
+        """
+        try:
+            response = self.client.table("reviews") \
+                .select("salon_name") \
+                .eq("cid", cid) \
+                .neq("salon_name", "Unknown Salon") \
+                .neq("salon_name", "N/A") \
+                .limit(1) \
+                .execute()
+            
+            if response.data:
+                return response.data[0].get('salon_name')
+        except Exception as e:
+            print(f"Error fetching salon name for CID {cid}: {e}")
+        return None
 
 # Global instance for easy access
 db = SupabaseClient()
