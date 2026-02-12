@@ -5,6 +5,9 @@ from base64 import b64encode
 from config import settings
 
 class DataForSEOClient:
+    REQUEST_TIMEOUT_SECONDS = 30
+    REQUEST_RETRIES = 3
+
     def __init__(self):
         self.login = settings.DATAFORSEO_LOGIN
         self.password = settings.DATAFORSEO_PASSWORD
@@ -24,6 +27,33 @@ class DataForSEOClient:
             'Authorization': 'Basic ' + b64encode(f"{self.login}:{self.password}".encode('utf-8')).decode('utf-8'),
             'Content-Type': 'application/json'
         }
+
+    def _request_json(self, method: str, url: str, payload: list = None):
+        """HTTP helper with timeout and bounded retries."""
+        for attempt in range(1, self.REQUEST_RETRIES + 1):
+            try:
+                if method == "GET":
+                    response = requests.get(
+                        url,
+                        headers=self._get_headers(),
+                        timeout=self.REQUEST_TIMEOUT_SECONDS
+                    )
+                else:
+                    response = requests.post(
+                        url,
+                        headers=self._get_headers(),
+                        json=payload,
+                        timeout=self.REQUEST_TIMEOUT_SECONDS
+                    )
+
+                response.raise_for_status()
+                return response.json()
+            except requests.RequestException as e:
+                if attempt == self.REQUEST_RETRIES:
+                    raise
+                wait_seconds = 2 ** (attempt - 1)
+                print(f"HTTP {method} retry {attempt}/{self.REQUEST_RETRIES} failed for {url}: {e}")
+                time.sleep(wait_seconds)
 
     def fetch_reviews(self, cid: str, depth: int = 100):
         """
@@ -58,8 +88,7 @@ class DataForSEOClient:
         for i in range(30): # Try for 60 seconds (30 * 2s)
             time.sleep(2)
             try:
-                response = requests.get(get_endpoint, headers=self._get_headers())
-                result = response.json()
+                result = self._request_json("GET", get_endpoint)
                 
                 if result.get('status_code') == 20000:
                     tasks = result.get('tasks', [])
@@ -103,14 +132,7 @@ class DataForSEOClient:
     def _make_request(self, url: str, payload: list, is_task_post: bool = False):
         try:
             print(f"DEBUG: Requesting {url}") # Make this visible
-            response = requests.post(
-                url,
-                headers=self._get_headers(),
-                data=json.dumps(payload)
-            )
-            # print(f"DEBUG: Request to {url} status: {response.status_code}") 
-            response.raise_for_status()
-            result = response.json()
+            result = self._request_json("POST", url, payload)
             
             # Basic validation
             if result.get('status_code') == 20000:
@@ -141,12 +163,10 @@ class DataForSEOClient:
                 print(f"DataForSEO Error: {result.get('status_message')}")
                 if "reviews" in url:
                      print("Full Response:", json.dumps(result, indent=2))
-                return [], None
+                return None if is_task_post else []
                 
         except Exception as e:
             print(f"Error making request to {url}: {e}")
-            if 'response' in locals():
-                print(response.text)
-            return [], None
+            return None if is_task_post else []
         
         return []

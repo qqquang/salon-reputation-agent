@@ -1,11 +1,12 @@
 import time
 import os
 import sys
+import json
 
 # Add project root to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# imports configuration variables (like SALON_CID, GEMINI_API_KEY, etc.)
+# imports configuration variables (like SALON_CID, OPENAI_API_KEY, etc.)
 from config import settings
 from src.db.supabase_client import db
 from src.ingestion.dataforseo import DataForSEOClient
@@ -18,7 +19,59 @@ class SimpleIngestionAgent:
     def __init__(self):
         print("Initializing Simple Ingestion Agent...")
         self.dfs_client = DataForSEOClient()
-        self.router = IntelligenceRouter()
+        self.router = None if settings.DRY_RUN else IntelligenceRouter()
+        if settings.DRY_RUN:
+            print("DRY_RUN is enabled. External API calls are disabled.")
+
+    def _load_dry_run_reviews(self):
+        reviews = []
+        try:
+            base_dir = os.path.dirname(os.path.dirname(__file__))
+            fixture_path = os.path.join(base_dir, settings.DRY_RUN_REVIEWS_FILE)
+            with open(fixture_path, "r") as f:
+                test_cases = json.load(f)
+
+            for i, case in enumerate(test_cases):
+                data = case.get("data") or case.get("input") or case
+                rating_value = data.get("rating", 5)
+                if isinstance(rating_value, dict):
+                    rating_value = rating_value.get("value", 5)
+
+                reviews.append({
+                    "id_review": data.get("review_id") or data.get("id") or f"dry-run-{i}",
+                    "profile_name": data.get("profile_name") or data.get("author_name") or "Test User",
+                    "rating": {"value": int(rating_value) if rating_value else 5},
+                    "review_text": data.get("review_text") or data.get("original_text") or "",
+                    "owner_answer": data.get("owner_answer", ""),
+                    "review_url": data.get("review_url", ""),
+                    "timestamp": data.get("timestamp"),
+                    "profile_image_url": data.get("profile_image_url", ""),
+                    "reviews_count": data.get("reviews_count", 0)
+                })
+        except Exception as e:
+            print(f"Error loading DRY_RUN fixture: {e}")
+            return []
+        return reviews
+
+    def _analyze_review(self, review_record, history):
+        if settings.DRY_RUN:
+            rating = review_record.get("rating", 5) or 5
+            sentiment_score = max(1, min(10, int(rating) * 2))
+            risk_flag = sentiment_score <= 4
+            category = "Service Quality" if review_record.get("original_text") else "Other"
+            return {
+                "scout": {
+                    "sentiment_score": sentiment_score,
+                    "risk_flag": risk_flag,
+                    "category": category
+                },
+                "vietnamese_summary": "Tom tat thu nghiem tu review (DRY_RUN).",
+                "consult": {},
+                "draft_response": "Thanks for your feedback. We appreciate your visit and hope to see you again soon.",
+                "processed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "dry_run": True
+            }
+        return self.router.process_review(review_record, history)
 
     def run(self):
         print("Ingestion Agent Started. Press Ctrl+C to stop.")
@@ -43,7 +96,13 @@ class SimpleIngestionAgent:
         # 2. Discovery Mode (Search Query)
         elif settings.SEARCH_QUERY:
             print(f"Running Discovery: '{settings.SEARCH_QUERY}'")
-            businesses = self.dfs_client.search_businesses(settings.SEARCH_QUERY)
+            if settings.DRY_RUN:
+                businesses = [{"cid": settings.SALON_CID or "dry-run-cid", "title": "Dry Run Salon"}]
+            else:
+                businesses = self.dfs_client.search_businesses(settings.SEARCH_QUERY)
+            if not isinstance(businesses, list):
+                print("Discovery request failed; expected a business list.")
+                return
             print(f"Found {len(businesses)} businesses.")
             for biz in businesses:
                 cid = biz.get('cid')
@@ -62,7 +121,11 @@ class SimpleIngestionAgent:
 
     def process_cid(self, cid, salon_name):
         print(f"Fetching reviews for {salon_name} ({cid})...")
-        reviews, fetched_name = self.dfs_client.fetch_reviews(cid, depth=700)
+        if settings.DRY_RUN:
+            reviews = self._load_dry_run_reviews()
+            fetched_name = salon_name
+        else:
+            reviews, fetched_name = self.dfs_client.fetch_reviews(cid, depth=700)
         
         # Update name if available and we are using default/fallback
         if fetched_name:
@@ -103,15 +166,23 @@ class SimpleIngestionAgent:
                 "review_date": review.get('timestamp'), # Accurate review time
                 "profile_image_url": review.get('profile_image_url', ''),
                 "author_review_count": review.get('reviews_count', 0),
-                "raw_data": review,
-                "created_at": "now()"
+                "raw_data": review
             }
 
             # 2. AI Analysis (The Brain)
             print(f" - Analyzing review...")
             # Fetch recent history for context
-            history = db.get_recent_responses(limit=5)
-            analysis = self.router.process_review(review_record, history)
+            history = db.get_recent_responses(limit=12)
+            analysis = self._analyze_review(review_record, history)
+
+            if not analysis or analysis.get("error") or not analysis.get("scout"):
+                review_record.update({
+                    "analysis_json": analysis or {"error": "analysis_failed"},
+                    "status": "ANALYSIS_FAILED"
+                })
+                db.insert_review(review_record)
+                print(" - Analysis failed; saved for retry.")
+                continue
             
             # 3. Merge Analysis
             review_record.update({
