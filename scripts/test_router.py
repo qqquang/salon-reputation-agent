@@ -11,7 +11,7 @@ from src.processing.router import IntelligenceRouter
 def test_router():
     router = IntelligenceRouter()
     
-    print("--- Gemini Router CLI Tester ---")
+    print("--- OpenAI Router CLI Tester ---")
     print("Loading 'scripts/test_reviews.json'...")
     
     results = []

@@ -1,4 +1,5 @@
 from supabase import create_client, Client
+from datetime import datetime, timezone
 from config import settings
 
 class SupabaseClient:
@@ -7,9 +8,12 @@ class SupabaseClient:
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(SupabaseClient, cls).__new__(cls)
-            if not settings.SUPABASE_URL or not settings.SUPABASE_KEY:
+            if settings.DRY_RUN:
+                cls._instance.client = None
+            elif not settings.SUPABASE_URL or not settings.SUPABASE_KEY:
                 raise ValueError("Supabase URL and Key must be set in .env")
-            cls._instance.client: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+            else:
+                cls._instance.client: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
         return cls._instance
 
     def get_client(self) -> Client:
@@ -17,6 +21,8 @@ class SupabaseClient:
 
     def review_exists(self, review_id: str) -> bool:
         """Checks if a review ID already exists in the database."""
+        if settings.DRY_RUN or self.client is None:
+            return False
         try:
             response = self.client.table("reviews").select("review_id", count="exact").eq("review_id", review_id).execute()
             # If count is not None and > 0, it exists. 
@@ -29,6 +35,9 @@ class SupabaseClient:
 
     def insert_review(self, review_data: dict):
         """Inserts a new review into the database."""
+        if settings.DRY_RUN or self.client is None:
+            print(f"[DRY_RUN] Would insert review {review_data.get('review_id')} with status={review_data.get('status')}")
+            return
         try:
             self.client.table("reviews").insert(review_data).execute()
             print(f"Inserted review {review_data.get('review_id')}")
@@ -38,9 +47,12 @@ class SupabaseClient:
 
     def update_status(self, review_id: str, status: str, extra_data: dict = None):
         """Updates the status of a review."""
-        update_payload = {"status": status, "updated_at": "now()"}
+        update_payload = {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}
         if extra_data:
             update_payload.update(extra_data)
+        if settings.DRY_RUN or self.client is None:
+            print(f"[DRY_RUN] Would update review {review_id} to status={status}")
+            return
         
         try:
             self.client.table("reviews").update(update_payload).eq("review_id", review_id).execute()
@@ -49,12 +61,14 @@ class SupabaseClient:
             print(f"Error updating review status: {e}")
             raise
 
-    def get_recent_responses(self, limit: int = 5) -> list[str]:
+    def get_recent_responses(self, limit: int = 12) -> list[str]:
         """Fetches the last 'limit' draft responses to provide context."""
+        if settings.DRY_RUN or self.client is None:
+            return []
         try:
             response = self.client.table("reviews") \
                 .select("draft_response") \
-                .neq("draft_response", "null") \
+                .not_.is_("draft_response", "null") \
                 .order("created_at", desc=True) \
                 .limit(limit) \
                 .execute()
@@ -69,6 +83,8 @@ class SupabaseClient:
         Attempts to find a valid salon name for the given CID from existing records.
         Returns None if not found or if only placeholders exist.
         """
+        if settings.DRY_RUN or self.client is None:
+            return None
         try:
             response = self.client.table("reviews") \
                 .select("salon_name") \

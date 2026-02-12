@@ -1,8 +1,14 @@
 #!/bin/bash
+set -euo pipefail
 
-# Navigate to project directory
-cd /Users/quangnguyen/Desktop/getbizsonar/salon-reputation-agent
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
 
-# Activate virtual environment and run agent once
-# Recommended Cron Schedule (Every 3 Days): 0 9 */3 * * /Users/quangnguyen/Desktop/getbizsonar/salon-reputation-agent/run_agent.sh
-./venv/bin/python src/main.py --once
+# Activate virtual environment when available, otherwise use system Python.
+if [ -x "./venv/bin/python" ]; then
+  PYTHON_BIN="./venv/bin/python"
+else
+  PYTHON_BIN="python3"
+fi
+
+"$PYTHON_BIN" src/main.py --once

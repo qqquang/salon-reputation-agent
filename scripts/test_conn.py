@@ -4,33 +4,29 @@ import sys
 # Add project root to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from google import genai
+from openai import OpenAI
 from config import settings
 
 
-def test_gemini():
-    print(f"Testing Gemini with key: {settings.GEMINI_API_KEY[:5]}...")
+def test_openai():
+    if not settings.OPENAI_API_KEY:
+        print("OPENAI_API_KEY is missing.")
+        return
+
+    print("Testing OpenAI connectivity...")
     
     try:
-        client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
-        print("0. Listing Models...")
-        for m in client.models.list(config={'page_size': 50}):
-            print(f" - {m.name}")
-
-        print("\n1. Testing Simple Generation (gemini-flash-latest)...")
-        # Trying alias
-        response = client.models.generate_content(
-            model='gemini-flash-latest',
-            contents='Hello, are you working?'
+        print(f"1. Testing simple generation ({settings.OPENAI_MODEL})...")
+        response = client.responses.create(
+            model=settings.OPENAI_MODEL,
+            input="Hello, are you working?"
         )
-        print(f"Success! Response: {response.text}")
+        print(f"Success! Response: {response.output_text}")
         
     except Exception as e:
         print(f"\nFATAL ERROR: {e}")
-        # import traceback
-        # traceback.print_exc()
 
 if __name__ == "__main__":
-    test_gemini()
-
+    test_openai()

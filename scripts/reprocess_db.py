@@ -48,7 +48,7 @@ def reprocess_reviews():
         }
         
         # Get Context
-        history = db.get_recent_responses(limit=5)
+        history = db.get_recent_responses(limit=12)
         
         # Run Analysis
         try:

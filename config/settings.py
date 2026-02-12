@@ -16,6 +16,9 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 SALON_CID = os.getenv("SALON_CID")
 SALON_NAME = os.getenv("SALON_NAME", "N/A")
 SEARCH_QUERY = os.getenv("SEARCH_QUERY")
+DRY_RUN = os.getenv("DRY_RUN", "False").lower() == "true"
+DRY_RUN_REVIEWS_FILE = os.getenv("DRY_RUN_REVIEWS_FILE", "scripts/data/test_reviews.json")
 
-# Gemini
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+# OpenAI
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5-mini")
