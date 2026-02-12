@@ -96,3 +96,23 @@ python3 src/main.py
   - verify `SUPABASE_URL` and `SUPABASE_KEY`
 - OpenAI errors:
   - verify `OPENAI_API_KEY`
+
+## 8) Daily Automation on Mac mini (launchd)
+
+Install daily run at 09:00 local time:
+
+```bash
+./scripts/install_launchd_daily.sh
+```
+
+Install daily run at a custom time (hour minute):
+
+```bash
+./scripts/install_launchd_daily.sh 8 30
+```
+
+Remove the scheduled job:
+
+```bash
+./scripts/uninstall_launchd_daily.sh
+```
