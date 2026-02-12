@@ -48,3 +48,23 @@ Run continuously:
 ```bash
 python3 src/main.py
 ```
+
+## Daily Auto Run (macOS launchd)
+
+Install a daily job (default `09:00` local time):
+
+```bash
+./scripts/install_launchd_daily.sh
+```
+
+Install at a custom time (`hour minute`):
+
+```bash
+./scripts/install_launchd_daily.sh 8 30
+```
+
+Remove the daily job:
+
+```bash
+./scripts/uninstall_launchd_daily.sh
+```
