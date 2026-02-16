@@ -10,13 +10,27 @@ from config import settings
 from src.db.supabase_client import db
 from src.processing.router import IntelligenceRouter
 
+def append_history_context(history_context, review_id, review_data, draft_response, limit=20):
+    if history_context is None:
+        history_context = []
+    if review_id:
+        history_context = [item for item in history_context if item.get("review_id") != review_id]
+    history_context.insert(0, {
+        "review_id": review_id,
+        "author_name": review_data.get("author_name"),
+        "rating": review_data.get("rating"),
+        "original_text": review_data.get("original_text"),
+        "draft_response": draft_response,
+    })
+    return history_context[:limit]
+
 def reprocess_recent():
     print("--- Reprocessing Recent Reviews ---")
     
     # 1. Fetch recent reviews
-    print("Fetching last 10 reviews from database...")
+    print("Fetching last 20 reviews from database...")
     try:
-        query = db.client.table("reviews").select("*").order("created_at", desc=True).limit(10)
+        query = db.client.table("reviews").select("*").order("created_at", desc=True).limit(20)
         
         if settings.SALON_CID:
             print(f"Filtering by Salon CID: {settings.SALON_CID}")
@@ -31,6 +45,9 @@ def reprocess_recent():
 
     # 2. Initialize Router
     router = IntelligenceRouter()
+    # Seed context once and keep it updated in-memory during this run.
+    history_context = db.get_recent_review_context(limit=20)
+    print(f"Loaded {len(history_context)} recent review/response context records.")
     
     # 3. Process Loop
     for i, review in enumerate(reviews):
@@ -48,12 +65,9 @@ def reprocess_recent():
             "salon_name": review.get('salon_name')
         }
         
-        # Get Context
-        history = db.get_recent_responses(limit=12)
-        
         # Run Analysis
         try:
-            analysis = router.process_review(review_data, history)
+            analysis = router.process_review(review_data, history_context)
             
             if not analysis:
                 print(" - Failed to analyze.")
@@ -73,6 +87,13 @@ def reprocess_recent():
             
             # Save to DB
             db.client.table("reviews").update(update_payload).eq("review_id", review_id).execute()
+            history_context = append_history_context(
+                history_context,
+                review_id,
+                review_data,
+                analysis.get('draft_response'),
+                limit=20
+            )
             print(f" - Updated: {analysis.get('draft_response')[:50]}...")
             
             # Sleep slightly to avoid rate limits if any

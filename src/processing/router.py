@@ -2,6 +2,7 @@ import os
 import json
 import hashlib
 import re
+from difflib import SequenceMatcher
 from datetime import datetime, timezone
 from openai import OpenAI
 from config import settings
@@ -118,11 +119,37 @@ class IntelligenceRouter:
         text = re.sub(r"[^a-z0-9\s]", "", text)
         return re.sub(r"\s+", " ", text).strip()
 
+    def _extract_first_sentence(self, text: str) -> str:
+        if not text:
+            return ""
+        parts = re.split(r"(?<=[.!?])\s+", text.strip())
+        return parts[0] if parts else text.strip()
+
     def _extract_last_sentence(self, text: str) -> str:
         if not text:
             return ""
         parts = re.split(r"(?<=[.!?])\s+", text.strip())
         return parts[-1] if parts else text.strip()
+
+    def _starts_with_author_name(self, text: str, author: str) -> bool:
+        if not text or not author:
+            return False
+        first_sentence = self._extract_first_sentence(text).strip().lower()
+        author_clean = (author or "").strip().lower()
+        if not first_sentence or not author_clean:
+            return False
+
+        first_token = author_clean.split()[0]
+        return first_sentence.startswith(f"{first_token},") or first_sentence.startswith(f"{first_token} ")
+
+    def _build_recent_openings(self, history: list[str]) -> list[str]:
+        openings = []
+        for h in history or []:
+            opening = self._extract_first_sentence(h)
+            normalized = self._normalize_text(opening)
+            if normalized:
+                openings.append(normalized)
+        return openings
 
     def _build_recent_closings(self, history: list[str]) -> list[str]:
         closings = []
@@ -132,6 +159,73 @@ class IntelligenceRouter:
             if normalized:
                 closings.append(normalized)
         return closings
+
+    def _jaccard_similarity(self, a: str, b: str) -> float:
+        a_tokens = set((a or "").split())
+        b_tokens = set((b or "").split())
+        if not a_tokens or not b_tokens:
+            return 0.0
+        intersection = len(a_tokens.intersection(b_tokens))
+        union = len(a_tokens.union(b_tokens))
+        return (intersection / union) if union else 0.0
+
+    def _sentence_overlap_ratio(self, a: str, b: str) -> float:
+        a_sentences = [
+            self._normalize_text(s) for s in re.split(r"(?<=[.!?])\s+", (a or "").strip()) if self._normalize_text(s)
+        ]
+        b_sentences = [
+            self._normalize_text(s) for s in re.split(r"(?<=[.!?])\s+", (b or "").strip()) if self._normalize_text(s)
+        ]
+        if not a_sentences or not b_sentences:
+            return 0.0
+        a_set = set(a_sentences)
+        b_set = set(b_sentences)
+        overlap = len(a_set.intersection(b_set))
+        return max(overlap / len(a_set), overlap / len(b_set))
+
+    def _similarity_score(self, a: str, b: str) -> float:
+        a_norm = self._normalize_text(a)
+        b_norm = self._normalize_text(b)
+        if not a_norm or not b_norm:
+            return 0.0
+        seq_ratio = SequenceMatcher(None, a_norm, b_norm).ratio()
+        jaccard = self._jaccard_similarity(a_norm, b_norm)
+        sentence_overlap = self._sentence_overlap_ratio(a, b)
+        return max(seq_ratio, jaccard, sentence_overlap)
+
+    def _find_most_similar_recent(self, draft: str, recent_responses: list[str]) -> tuple[float, str]:
+        best_score = 0.0
+        best_match = ""
+        for previous in recent_responses[:20]:
+            score = self._similarity_score(draft, previous)
+            if score > best_score:
+                best_score = score
+                best_match = previous
+        return best_score, best_match
+
+    def _build_recent_review_context_lines(self, history_context: list[dict]) -> str:
+        if not history_context:
+            return "None."
+
+        lines = []
+        for item in history_context:
+            rating = item.get("rating")
+            rating_label = f"{rating}/5" if rating is not None else "N/A"
+            review_text = (item.get("original_text") or "").strip()
+            if len(review_text) > 140:
+                review_text = review_text[:137].rstrip() + "..."
+            if not review_text:
+                review_text = "[No review text]"
+
+            draft = (item.get("draft_response") or "").strip()
+            if len(draft) > 140:
+                draft = draft[:137].rstrip() + "..."
+            if not draft:
+                draft = "[No draft response]"
+
+            lines.append(f"- Rating {rating_label}; Review: {review_text}; Draft: {draft}")
+
+        return "\n".join(lines)
 
     def _generate_text(self, prompt: str) -> str:
         response = self.client.responses.create(
@@ -155,7 +249,7 @@ class IntelligenceRouter:
                     parts.append(part_text)
         return "\n".join(parts).strip()
 
-    def process_review(self, review_data: dict, history: list[str] = None) -> dict:
+    def process_review(self, review_data: dict, history: list = None) -> dict:
         """
         Main entry point for processing a review.
         Orchestrates the analysis pipeline using OpenAI.
@@ -264,7 +358,7 @@ class IntelligenceRouter:
         except Exception:
             return {}
 
-    def _draft(self, review_data: dict, scout_result: dict, history: list[str] = None) -> str:
+    def _draft(self, review_data: dict, scout_result: dict, history_context: list = None) -> str:
         """
         Step 4: Draft a polite, professional response.
         """
@@ -280,8 +374,19 @@ class IntelligenceRouter:
         else:
             emoji_instruction = "Use 1-2 appropriate emojis."
 
-        # Format history for prompt
-        history_str = "\n".join([f"- {h}" for h in (history or [])]) if history else "None."
+        recent_responses = []
+        if history_context and isinstance(history_context[0], dict):
+            recent_responses = [
+                (item.get("draft_response") or "").strip()
+                for item in history_context
+                if (item.get("draft_response") or "").strip()
+            ]
+            recent_reviews_str = self._build_recent_review_context_lines(history_context)
+        else:
+            recent_responses = [h for h in (history_context or []) if isinstance(h, str) and h.strip()]
+            recent_reviews_str = "None."
+
+        history_str = "\n".join([f"- {h}" for h in recent_responses]) if recent_responses else "None."
         brand_context = self._build_brand_context()
         style_hint = self._build_style_hint(review_data, sentiment_score, category)
 
@@ -293,25 +398,70 @@ class IntelligenceRouter:
             salon_name=salon_name,
             emoji_instruction=emoji_instruction,
             context_history=history_str,
+            recent_reviews=recent_reviews_str,
             brand_context=brand_context,
             style_hint=style_hint
         )
         
         try:
-            draft = self._generate_text(prompt)
-            recent_closings = self._build_recent_closings(history)
-            new_closing = self._normalize_text(self._extract_last_sentence(draft))
+            recent_openings = self._build_recent_openings(recent_responses)
+            recent_closings = self._build_recent_closings(recent_responses)
+            attempt_prompt = prompt
+            last_draft = ""
 
-            if new_closing and new_closing in recent_closings:
-                retry_prompt = (
-                    f"{prompt}\n\nRegenerate once with a different final sentence than these recent closings:\n"
-                    + "\n".join([f"- {c}" for c in recent_closings])
+            for attempt in range(3):
+                draft = self._generate_text(attempt_prompt)
+                last_draft = draft
+                new_opening = self._normalize_text(self._extract_first_sentence(draft))
+                new_closing = self._normalize_text(self._extract_last_sentence(draft))
+                starts_with_author_name = self._starts_with_author_name(draft, author)
+                opening_repeated = new_opening and new_opening in recent_openings
+                closing_repeated = new_closing and new_closing in recent_closings
+
+                token_count = len(self._normalize_text(draft).split())
+                similarity_threshold = 0.88 if token_count <= 18 else 0.82
+                best_similarity, most_similar = self._find_most_similar_recent(draft, recent_responses)
+                too_similar = bool(most_similar) and best_similarity >= similarity_threshold
+
+                if not (opening_repeated or closing_repeated or starts_with_author_name or too_similar):
+                    return draft
+
+                if attempt == 2:
+                    break
+
+                recent_opening_lines = []
+                for h in recent_responses[:10]:
+                    first = self._extract_first_sentence(h)
+                    if first:
+                        recent_opening_lines.append(f"- {first}")
+
+                recent_closing_lines = []
+                for h in recent_responses[:10]:
+                    last = self._extract_last_sentence(h)
+                    if last:
+                        recent_closing_lines.append(f"- {last}")
+
+                similarity_note = ""
+                if too_similar:
+                    similarity_note = (
+                        f"\n- Your previous draft is too similar to a recent response (similarity={best_similarity:.2f})."
+                        "\n- Use a noticeably different sentence structure and wording."
+                        f"\nMost similar recent response:\n- {most_similar}"
+                    )
+
+                attempt_prompt = (
+                    f"{prompt}\n\nRegenerate with stricter anti-repetition constraints (attempt {attempt + 2}/3):\n"
+                    "- Avoid opening with the author's name.\n"
+                    "- Use a different opening structure than recent responses.\n"
+                    "- Use a different final sentence than recent responses.\n"
+                    "- Do not reuse 4+ word sequences from recent responses.\n"
+                    f"{similarity_note}\n"
+                    "Recent opening lines:\n"
+                    + ("\n".join(recent_opening_lines) if recent_opening_lines else "- None.")
+                    + "\nRecent closing lines:\n"
+                    + ("\n".join(recent_closing_lines) if recent_closing_lines else "- None.")
                 )
-                draft_retry = self._generate_text(retry_prompt)
-                retry_closing = self._normalize_text(self._extract_last_sentence(draft_retry))
-                if retry_closing and retry_closing not in recent_closings:
-                    return draft_retry
 
-            return draft
+            return last_draft or "Thank you for your feedback."
         except Exception:
             return "Thank you for your feedback."

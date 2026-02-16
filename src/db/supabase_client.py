@@ -61,7 +61,7 @@ class SupabaseClient:
             print(f"Error updating review status: {e}")
             raise
 
-    def get_recent_responses(self, limit: int = 12) -> list[str]:
+    def get_recent_responses(self, limit: int = 20) -> list[str]:
         """Fetches the last 'limit' draft responses to provide context."""
         if settings.DRY_RUN or self.client is None:
             return []
@@ -76,6 +76,22 @@ class SupabaseClient:
             return [r['draft_response'] for r in response.data if r.get('draft_response')]
         except Exception as e:
             print(f"Error fetching recent responses: {e}")
+            return []
+
+    def get_recent_review_context(self, limit: int = 20) -> list[dict]:
+        """Fetches recent review/response pairs for drafting context."""
+        if settings.DRY_RUN or self.client is None:
+            return []
+        try:
+            response = self.client.table("reviews") \
+                .select("review_id,author_name,rating,original_text,draft_response,created_at") \
+                .order("created_at", desc=True) \
+                .limit(limit) \
+                .execute()
+
+            return response.data or []
+        except Exception as e:
+            print(f"Error fetching recent review context: {e}")
             return []
 
     def get_salon_name(self, cid: str) -> str:

@@ -73,6 +73,27 @@ class SimpleIngestionAgent:
             }
         return self.router.process_review(review_record, history)
 
+    def _append_history_context(self, history_context, review_record, limit: int = 20):
+        """Maintains a rolling, de-duplicated in-memory review/response context."""
+        if history_context is None:
+            history_context = []
+
+        review_id = review_record.get("review_id")
+        if review_id:
+            history_context = [
+                item for item in history_context
+                if item.get("review_id") != review_id
+            ]
+
+        history_context.insert(0, {
+            "review_id": review_id,
+            "author_name": review_record.get("author_name"),
+            "rating": review_record.get("rating"),
+            "original_text": review_record.get("original_text"),
+            "draft_response": review_record.get("draft_response"),
+        })
+        return history_context[:limit]
+
     def run(self):
         print("Ingestion Agent Started. Press Ctrl+C to stop.")
         while True:
@@ -141,6 +162,9 @@ class SimpleIngestionAgent:
                  salon_name = existing_name
                 
         print(f"Found {len(reviews)} reviews for {salon_name}.")
+        # Seed context once per salon run to avoid repeated DB reads.
+        history_context = db.get_recent_review_context(limit=20)
+        print(f"Loaded {len(history_context)} recent review/response context records.")
 
         for review in reviews:
             review_id = review.get('id_review') or review.get('review_id')
@@ -171,9 +195,7 @@ class SimpleIngestionAgent:
 
             # 2. AI Analysis (The Brain)
             print(f" - Analyzing review...")
-            # Fetch recent history for context
-            history = db.get_recent_responses(limit=12)
-            analysis = self._analyze_review(review_record, history)
+            analysis = self._analyze_review(review_record, history_context)
 
             if not analysis or analysis.get("error") or not analysis.get("scout"):
                 review_record.update({
@@ -197,6 +219,7 @@ class SimpleIngestionAgent:
             
             # 4. Save to DB
             db.insert_review(review_record)
+            history_context = self._append_history_context(history_context, review_record, limit=20)
             print(f" - Saved.")
 
 if __name__ == "__main__":
