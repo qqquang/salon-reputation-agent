@@ -5,19 +5,28 @@ import re
 from difflib import SequenceMatcher
 from datetime import datetime, timezone
 from openai import OpenAI
+from google import genai as google_genai
 from config import settings
 
 class IntelligenceRouter:
     def __init__(self):
         if not settings.OPENAI_API_KEY:
             raise ValueError("OPENAI_API_KEY is not set in environment variables.")
-        
+
         self.client = OpenAI(
             api_key=settings.OPENAI_API_KEY,
             timeout=60.0,
             max_retries=2
         )
         self.model = settings.OPENAI_MODEL
+
+        # Gemini client for image analysis (only if key is available)
+        self.gemini_client = None
+        self.vision_model = settings.VISION_MODEL
+        if settings.GEMINI_API_KEY:
+            self.gemini_client = google_genai.Client(api_key=settings.GEMINI_API_KEY)
+        else:
+            print("Warning: GEMINI_API_KEY not set. Image analysis will be skipped.")
         
         # Load prompts configuration
         try:
@@ -227,6 +236,62 @@ class IntelligenceRouter:
 
         return "\n".join(lines)
 
+    def _analyze_images(self, image_urls: list) -> str:
+        """
+        Uses Gemini Flash to analyze customer-attached review photos.
+        Returns a brief description of what's visible: work quality, service type,
+        and whether the photos support or contradict the written review.
+        Returns empty string if no images or Gemini not configured.
+        """
+        if not self.gemini_client or not image_urls:
+            return ""
+
+        # Limit to first 5 images to keep cost low
+        urls = [u for u in image_urls if u][:5]
+        if not urls:
+            return ""
+
+        try:
+            import requests as http_requests
+            from google.genai import types as genai_types
+
+            prompt = (
+                "You are analyzing nail salon review photos.\n"
+                "For each photo, briefly note:\n"
+                "1. What service is shown (manicure, pedicure, nail art, etc.)\n"
+                "2. Apparent work quality (clean lines, even color, shaping, any visible issues)\n"
+                "3. One-line overall impression\n\n"
+                "Be factual and concise. Total response max 80 words."
+            )
+
+            parts = [genai_types.Part(text=prompt)]
+            for url in urls:
+                try:
+                    resp = http_requests.get(url, timeout=10)
+                    resp.raise_for_status()
+                    content_type = resp.headers.get("Content-Type", "image/jpeg").split(";")[0].strip()
+                    parts.append(genai_types.Part(
+                        inline_data=genai_types.Blob(
+                            mime_type=content_type,
+                            data=resp.content
+                        )
+                    ))
+                except Exception as img_err:
+                    print(f"   [Vision] Could not fetch image {url[:60]}...: {img_err}")
+
+            if len(parts) == 1:
+                # No images were fetched successfully
+                return ""
+
+            response = self.gemini_client.models.generate_content(
+                model=self.vision_model,
+                contents=parts
+            )
+            return (response.text or "").strip()
+        except Exception as e:
+            print(f"Image analysis error: {e}")
+            return ""
+
     def _generate_text(self, prompt: str) -> str:
         response = self.client.responses.create(
             model=self.model,
@@ -252,25 +317,36 @@ class IntelligenceRouter:
     def process_review(self, review_data: dict, history: list = None) -> dict:
         """
         Main entry point for processing a review.
-        Orchestrates the analysis pipeline using OpenAI.
+        Orchestrates the analysis pipeline using OpenAI (text) + Gemini (images).
         """
         try:
+            # 0. Image Analysis: Analyze any customer photos with Gemini
+            image_urls = [
+                img.get("image_url")
+                for img in (review_data.get("images") or [])
+                if img.get("image_url")
+            ]
+            image_context = self._analyze_images(image_urls)
+            if image_context:
+                print(f"   [Vision] Analyzed {len(image_urls)} image(s).")
+
             # 1. Scout: Analyze sentiment and risk
-            scout_result = self._scout(review_data)
-            
+            scout_result = self._scout(review_data, image_context)
+
             # 2. Translate: Summarize in Vietnamese
             vietnamese_summary = self._translate(review_data, scout_result)
-            
-            # 3. Consult: Deep dive if risky (Optional optimization: only run if risk=True)
+
+            # 3. Consult: Deep dive if risky
             consult_result = {}
             if scout_result.get('risk_flag'):
                 consult_result = self._consult(review_data)
 
             # 4. Draft: Create a response
-            draft_response = self._draft(review_data, scout_result, history)
+            draft_response = self._draft(review_data, scout_result, history, image_context)
 
             return {
                 "scout": scout_result,
+                "image_context": image_context,
                 "vietnamese_summary": vietnamese_summary,
                 "consult": consult_result,
                 "draft_response": draft_response,
@@ -283,7 +359,7 @@ class IntelligenceRouter:
                 "processed_at": datetime.now(timezone.utc).isoformat()
             }
 
-    def _scout(self, review_data: dict) -> dict:
+    def _scout(self, review_data: dict, image_context: str = "") -> dict:
         """
         Step 1: Quick analysis of sentiment, risk, and category.
         """
@@ -296,10 +372,12 @@ class IntelligenceRouter:
             2: 4,
             1: 2,
         }
-        
+
         # Load prompt from config or fallback
         prompt_template = self.prompts.get('scout', "Analyze this review: {text}")
         prompt = prompt_template.format(text=text, rating=rating)
+        if image_context:
+            prompt += f"\n\nCustomer photos show: {image_context}"
         
         try:
             text = self._generate_text(prompt)
@@ -358,7 +436,7 @@ class IntelligenceRouter:
         except Exception:
             return {}
 
-    def _draft(self, review_data: dict, scout_result: dict, history_context: list = None) -> str:
+    def _draft(self, review_data: dict, scout_result: dict, history_context: list = None, image_context: str = "") -> str:
         """
         Step 4: Draft a polite, professional response.
         """
@@ -392,9 +470,9 @@ class IntelligenceRouter:
 
         prompt_template = self.prompts.get('draft', "Write a response to: {text}")
         prompt = prompt_template.format(
-            text=text, 
-            author=author, 
-            category=category, 
+            text=text,
+            author=author,
+            category=category,
             salon_name=salon_name,
             emoji_instruction=emoji_instruction,
             context_history=history_str,
@@ -402,6 +480,8 @@ class IntelligenceRouter:
             brand_context=brand_context,
             style_hint=style_hint
         )
+        if image_context:
+            prompt += f"\n\nCustomer photos show: {image_context}\nIf relevant, you may briefly reference what's visible in the photos (e.g., the nail art, the color choice) to make the response feel more personal."
         
         try:
             recent_openings = self._build_recent_openings(recent_responses)

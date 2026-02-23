@@ -21,4 +21,8 @@ DRY_RUN_REVIEWS_FILE = os.getenv("DRY_RUN_REVIEWS_FILE", "scripts/data/test_revi
 
 # OpenAI
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5-mini")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+
+# Gemini (used for image/vision analysis)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+VISION_MODEL = os.getenv("VISION_MODEL", "gemini-2.0-flash")

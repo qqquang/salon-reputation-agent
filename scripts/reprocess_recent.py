@@ -24,18 +24,18 @@ def append_history_context(history_context, review_id, review_data, draft_respon
     })
     return history_context[:limit]
 
-def reprocess_recent():
-    print("--- Reprocessing Recent Reviews ---")
-    
+def reprocess_recent(limit=10):
+    print(f"--- Reprocessing Last {limit} Reviews ---")
+
     # 1. Fetch recent reviews
-    print("Fetching last 20 reviews from database...")
+    print(f"Fetching last {limit} reviews from database...")
     try:
-        query = db.client.table("reviews").select("*").order("created_at", desc=True).limit(20)
-        
+        query = db.client.table("reviews").select("*").order("created_at", desc=True).limit(limit)
+
         if settings.SALON_CID:
             print(f"Filtering by Salon CID: {settings.SALON_CID}")
             query = query.eq("cid", settings.SALON_CID)
-            
+
         response = query.execute()
         reviews = response.data
         print(f"Found {len(reviews)} reviews.")
@@ -48,21 +48,28 @@ def reprocess_recent():
     # Seed context once and keep it updated in-memory during this run.
     history_context = db.get_recent_review_context(limit=20)
     print(f"Loaded {len(history_context)} recent review/response context records.")
-    
+
     # 3. Process Loop
     for i, review in enumerate(reviews):
         review_id = review.get('review_id')
         author = review.get('author_name', 'Unknown')
         print(f"\n[{i+1}/{len(reviews)}] Processing {author} ({review_id})...")
         print(f" - Original Text: {review.get('original_text')}")
-        
+
+        # Pull images from raw_data if available
+        raw_data = review.get('raw_data') or {}
+        images = raw_data.get('images') or []
+        if images:
+            print(f" - {len(images)} photo(s) attached.")
+
         # reconstruct review_data expected by router
         review_data = {
             "review_id": review_id,
-            "original_text": review.get('original_text') or "",  # Handle None
+            "original_text": review.get('original_text') or "",
             "rating": review.get('rating'),
             "author_name": author,
-            "salon_name": review.get('salon_name')
+            "salon_name": review.get('salon_name'),
+            "images": images,
         }
         
         # Run Analysis
@@ -82,7 +89,7 @@ def reprocess_recent():
                 "draft_response": analysis.get('draft_response'),
                 "analysis_json": analysis,
                 "status": "ANALYZED",
-                "updated_at": "now()"
+                "updated_at": "now()",
             }
             
             # Save to DB
@@ -105,4 +112,8 @@ def reprocess_recent():
     print("\n✅ Reprocess Recent Complete.")
 
 if __name__ == "__main__":
-    reprocess_recent()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--limit", type=int, default=10, help="Number of recent reviews to reprocess")
+    args = parser.parse_args()
+    reprocess_recent(limit=args.limit)

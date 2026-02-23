@@ -187,9 +187,10 @@ class SimpleIngestionAgent:
                 "original_text": review.get('review_text') or '',
                 "owner_response": review.get('owner_answer', ''),
                 "review_url": review.get('review_url', ''),
-                "review_date": review.get('timestamp'), # Accurate review time
+                "review_date": review.get('timestamp'),
                 "profile_image_url": review.get('profile_image_url', ''),
                 "author_review_count": review.get('reviews_count', 0),
+                "images": review.get('images') or [],
                 "raw_data": review
             }
 
