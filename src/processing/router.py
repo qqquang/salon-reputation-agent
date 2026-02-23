@@ -75,6 +75,7 @@ class IntelligenceRouter:
 
     def _build_style_hint(self, review_data: dict, sentiment_score: int, category: str) -> str:
         review_id = review_data.get("review_id", "default")
+        salon_name = review_data.get("salon_name") or self.brand_context.get("name") or "our salon"
         seed = int(hashlib.sha256(str(review_id).encode("utf-8")).hexdigest(), 16)
 
         opening_styles = [
@@ -105,10 +106,10 @@ class IntelligenceRouter:
         closing_options = [
             "We are excited to pamper you again soon.",
             "Thanks for trusting us with your nails.",
-            "We look forward to your next set at Mi Nail Belleville.",
+            f"We look forward to your next set at {salon_name}.",
             "See you soon for your next nail refresh.",
             "We can't wait to welcome you in again.",
-            "We appreciate you choosing Mi Nail Belleville."
+            f"We appreciate you choosing {salon_name}."
         ]
 
         option_a = closing_options[seed % len(closing_options)]

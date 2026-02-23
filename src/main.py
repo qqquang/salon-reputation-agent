@@ -8,7 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # imports configuration variables (like SALON_CID, OPENAI_API_KEY, etc.)
 from config import settings
-from src.db.supabase_client import db
+from src.db.supabase_client import db, append_history_context
 from src.ingestion.dataforseo import DataForSEOClient
 from src.processing.router import IntelligenceRouter
 
@@ -73,26 +73,6 @@ class SimpleIngestionAgent:
             }
         return self.router.process_review(review_record, history)
 
-    def _append_history_context(self, history_context, review_record, limit: int = 20):
-        """Maintains a rolling, de-duplicated in-memory review/response context."""
-        if history_context is None:
-            history_context = []
-
-        review_id = review_record.get("review_id")
-        if review_id:
-            history_context = [
-                item for item in history_context
-                if item.get("review_id") != review_id
-            ]
-
-        history_context.insert(0, {
-            "review_id": review_id,
-            "author_name": review_record.get("author_name"),
-            "rating": review_record.get("rating"),
-            "original_text": review_record.get("original_text"),
-            "draft_response": review_record.get("draft_response"),
-        })
-        return history_context[:limit]
 
     def run(self):
         print("Ingestion Agent Started. Press Ctrl+C to stop.")
@@ -220,7 +200,13 @@ class SimpleIngestionAgent:
             
             # 4. Save to DB
             db.insert_review(review_record)
-            history_context = self._append_history_context(history_context, review_record, limit=20)
+            history_context = append_history_context(
+                history_context,
+                review_record.get("review_id"),
+                review_record,
+                review_record.get("draft_response"),
+                limit=20
+            )
             print(f" - Saved.")
 
 if __name__ == "__main__":

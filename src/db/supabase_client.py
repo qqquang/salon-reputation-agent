@@ -118,3 +118,18 @@ class SupabaseClient:
 
 # Global instance for easy access
 db = SupabaseClient()
+
+def append_history_context(history_context, review_id, review_data, draft_response, limit=20):
+    """Shared helper: maintains a rolling, de-duplicated in-memory review/response context."""
+    if history_context is None:
+        history_context = []
+    if review_id:
+        history_context = [item for item in history_context if item.get("review_id") != review_id]
+    history_context.insert(0, {
+        "review_id": review_id,
+        "author_name": review_data.get("author_name"),
+        "rating": review_data.get("rating"),
+        "original_text": review_data.get("original_text"),
+        "draft_response": draft_response,
+    })
+    return history_context[:limit]

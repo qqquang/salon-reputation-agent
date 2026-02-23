@@ -2,27 +2,14 @@
 import sys
 import os
 import time
+from datetime import datetime, timezone
 
 # Add project root to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from config import settings
-from src.db.supabase_client import db
+from src.db.supabase_client import db, append_history_context
 from src.processing.router import IntelligenceRouter
-
-def append_history_context(history_context, review_id, review_data, draft_response, limit=20):
-    if history_context is None:
-        history_context = []
-    if review_id:
-        history_context = [item for item in history_context if item.get("review_id") != review_id]
-    history_context.insert(0, {
-        "review_id": review_id,
-        "author_name": review_data.get("author_name"),
-        "rating": review_data.get("rating"),
-        "original_text": review_data.get("original_text"),
-        "draft_response": draft_response,
-    })
-    return history_context[:limit]
 
 def reprocess_recent(limit=10):
     print(f"--- Reprocessing Last {limit} Reviews ---")
@@ -89,7 +76,7 @@ def reprocess_recent(limit=10):
                 "draft_response": analysis.get('draft_response'),
                 "analysis_json": analysis,
                 "status": "ANALYZED",
-                "updated_at": "now()",
+                "updated_at": datetime.now(timezone.utc).isoformat(),
             }
             
             # Save to DB

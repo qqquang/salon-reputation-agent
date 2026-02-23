@@ -2,26 +2,27 @@
 import sys
 import os
 import time
+from datetime import datetime, timezone
 
 # Add project root to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from config import settings
-from src.db.supabase_client import db
+from src.db.supabase_client import db, append_history_context
 from src.processing.router import IntelligenceRouter
 
 def reprocess_reviews():
     print("--- Reprocessing All Reviews ---")
-    
+
     # 1. Fetch all reviews
     print("Fetching reviews from database...")
     try:
         query = db.client.table("reviews").select("*")
-        
+
         if settings.SALON_CID:
             print(f"Filtering by Salon CID: {settings.SALON_CID}")
             query = query.eq("cid", settings.SALON_CID)
-            
+
         response = query.order("created_at", desc=False).execute()
         reviews = response.data
         print(f"Found {len(reviews)} reviews.")
@@ -31,29 +32,37 @@ def reprocess_reviews():
 
     # 2. Initialize Router
     router = IntelligenceRouter()
-    
+
+    # Seed context once before the loop (not inside it)
+    history_context = db.get_recent_review_context(limit=20)
+    print(f"Loaded {len(history_context)} recent review/response context records.")
+
     # 3. Process Loop
     for i, review in enumerate(reviews):
         review_id = review.get('review_id')
         author = review.get('author_name', 'Unknown')
         print(f"\n[{i+1}/{len(reviews)}] Processing {author} ({review_id})...")
-        
+
+        # Pull images from raw_data if available
+        raw_data = review.get('raw_data') or {}
+        images = raw_data.get('images') or []
+        if images:
+            print(f" - {len(images)} photo(s) attached.")
+
         # reconstruct review_data expected by router
         review_data = {
             "review_id": review_id,
-            "original_text": review.get('original_text'),
+            "original_text": review.get('original_text') or "",
             "rating": review.get('rating'),
             "author_name": author,
-            "salon_name": review.get('salon_name')
+            "salon_name": review.get('salon_name'),
+            "images": images,
         }
-        
-        # Get Context
-        history = db.get_recent_responses(limit=12)
-        
+
         # Run Analysis
         try:
-            analysis = router.process_review(review_data, history)
-            
+            analysis = router.process_review(review_data, history_context)
+
             if not analysis:
                 print(" - Failed to analyze.")
                 continue
@@ -67,16 +76,23 @@ def reprocess_reviews():
                 "draft_response": analysis.get('draft_response'),
                 "analysis_json": analysis,
                 "status": "ANALYZED",
-                "updated_at": "now()"
+                "updated_at": datetime.now(timezone.utc).isoformat()
             }
-            
+
             # Save to DB
             db.client.table("reviews").update(update_payload).eq("review_id", review_id).execute()
+            history_context = append_history_context(
+                history_context,
+                review_id,
+                review_data,
+                analysis.get('draft_response'),
+                limit=20
+            )
             print(f" - Updated: {analysis.get('draft_response')[:50]}...")
-            
+
             # Sleep slightly to avoid rate limits if any
             time.sleep(1)
-            
+
         except Exception as e:
             print(f" - Error updating: {e}")
 

@@ -31,4 +31,8 @@ def cleanup():
     print(f"\nTotal rows deleted: {total}")
 
 if __name__ == "__main__":
-    cleanup()
+    confirm = input("This will permanently delete error rows from the database. Type 'yes' to continue: ")
+    if confirm.strip().lower() != "yes":
+        print("Aborted.")
+    else:
+        cleanup()
