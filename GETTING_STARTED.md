@@ -3,8 +3,7 @@
 ## 1) Prerequisites
 
 - Python 3.9+
-- A terminal in this project directory:
-  - `/Users/quangnguyen/Documents/Mi Nail Belleville ai google response/salon-reputation-agent`
+- A terminal open in this project directory
 
 ## 2) Install dependencies
 
@@ -55,7 +54,7 @@ DATAFORSEO_PASSWORD=...
 SUPABASE_URL=...
 SUPABASE_KEY=...
 OPENAI_API_KEY=...
-OPENAI_MODEL=gpt-5-mini
+OPENAI_MODEL=gpt-4o-mini
 ```
 
 Then choose one target mode:
