@@ -10,3 +10,9 @@ venv/
 .pytest_cache/
 .idea/
 .vscode/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
