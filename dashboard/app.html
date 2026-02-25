@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi Nail — Review Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent:      #6366f1;
+      --accent-dark: #4f46e5;
+      --risk:        #ef4444;
+      --ok:          #22c55e;
+      --warn:        #f59e0b;
+      --bg:          #f8fafc;
+      --card:        #ffffff;
+      --border:      #e2e8f0;
+      --text:        #1e293b;
+      --muted:       #64748b;
+      --draft-bg:    #f0fdf4;
+      --draft-border:#bbf7d0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--accent);
+      color: white;
+      padding: 0.875rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    header h1 { font-size: 1.1rem; font-weight: 700; }
+    header .user-info { font-size: 0.8rem; opacity: 0.85; }
+
+    #logout-btn {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.4);
+      padding: 0.4rem 0.875rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    #logout-btn:hover { background: rgba(255,255,255,0.3); }
+
+    /* ── Stats bar ── */
+    #stats-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat {
+      flex: 1;
+      min-width: 120px;
+      padding: 1rem 1.5rem;
+      border-right: 1px solid var(--border);
+      text-align: center;
+    }
+    .stat:last-child { border-right: none; }
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    .stat-value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-top: 0.2rem;
+      line-height: 1;
+    }
+    #stat-risk .stat-value { color: var(--risk); }
+
+    /* ── Filters ── */
+    #filters {
+      background: #f1f5f9;
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    #filters select,
+    #filters input[type="text"] {
+      padding: 0.45rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: var(--text);
+      background: var(--card);
+      outline: none;
+      min-width: 130px;
+    }
+
+    #filter-search { min-width: 200px; flex: 1; max-width: 300px; }
+
+    #filters select:focus, #filters input:focus { border-color: var(--accent); }
+
+    .filter-btn {
+      padding: 0.45rem 1rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s;
+    }
+    .filter-btn:hover { opacity: 0.85; }
+    #apply-filters  { background: var(--accent); color: white; }
+    #clear-filters  { background: var(--card); color: var(--muted); border: 1px solid var(--border); }
+
+    .filter-count {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-left: auto;
+    }
+
+    /* ── Review list ── */
+    #review-list {
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* ── Empty / loading states ── */
+    .state-msg {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px; height: 20px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 0.5rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      transition: box-shadow 0.15s;
+    }
+    .card:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.09); }
+    .card.risk-flagged { border-left: 4px solid var(--risk); }
+    .card.failed { opacity: 0.6; }
+
+    .card-header {
+      padding: 0.875rem 1rem 0.5rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .card-author {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    .author-name { font-weight: 700; font-size: 0.925rem; }
+    .review-date { font-size: 0.78rem; color: var(--muted); }
+
+    .card-badges {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      padding: 0.2rem 0.55rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .badge-risk     { background: #fef2f2; color: var(--risk); border: 1px solid #fecaca; }
+    .badge-category { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .badge-failed   { background: #f8fafc; color: var(--muted); border: 1px solid var(--border); }
+
+    .stars { color: var(--warn); font-size: 0.9rem; letter-spacing: -1px; }
+    .sentiment-pill {
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+      padding: 0.2rem 0.55rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .sentiment-pill.low { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+    .sentiment-pill.mid { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+
+    /* ── Card body (two columns) ── */
+    .card-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .card-review, .card-draft {
+      padding: 0.875rem 1rem;
+      font-size: 0.875rem;
+      line-height: 1.65;
+    }
+
+    .card-review {
+      border-right: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .col-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .review-text { white-space: pre-wrap; word-break: break-word; }
+    .no-text { color: var(--muted); font-style: italic; }
+
+    .card-draft { background: var(--draft-bg); }
+
+    .draft-text {
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #166534;
+    }
+    .no-draft { color: var(--muted); font-style: italic; }
+
+    .copy-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: 0.625rem;
+      padding: 0.4rem 0.875rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .copy-btn:hover:not(:disabled) { background: var(--accent-dark); }
+    .copy-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .copy-btn.copied { background: var(--ok); }
+
+    /* ── Vietnamese summary (collapsible) ── */
+    .viet-section {
+      border-top: 1px solid var(--border);
+      padding: 0;
+    }
+
+    .viet-toggle {
+      width: 100%;
+      padding: 0.6rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 600;
+      text-align: left;
+      transition: background 0.1s;
+    }
+    .viet-toggle:hover { background: #f8fafc; }
+    .viet-toggle .arrow { transition: transform 0.2s; }
+    .viet-toggle.open .arrow { transform: rotate(180deg); }
+
+    .viet-content {
+      display: none;
+      padding: 0 1rem 0.875rem;
+      font-size: 0.85rem;
+      color: var(--text);
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+    .viet-content.open { display: block; }
+
+    /* ── Pagination ── */
+    #pagination {
+      text-align: center;
+      padding: 1.5rem;
+    }
+
+    #load-more {
+      padding: 0.65rem 2rem;
+      background: var(--card);
+      color: var(--accent);
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    #load-more:hover { background: var(--accent); color: white; }
+    #load-more:disabled { opacity: 0.5; cursor: not-allowed; }
+    #load-more.hidden { display: none; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .card-body { grid-template-columns: 1fr; }
+      .card-review { border-right: none; border-bottom: 1px solid var(--border); }
+      #stats-bar { overflow-x: auto; flex-wrap: nowrap; }
+      .stat { min-width: 100px; padding: 0.875rem 1rem; }
+      header h1 { font-size: 0.95rem; }
+      #review-list { padding: 1rem 0.75rem; }
+      #filters { padding: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <h1>Mi Nail &mdash; Review Dashboard</h1>
+      <div class="user-info" id="user-email"></div>
+    </div>
+    <button id="logout-btn">Logout</button>
+  </header>
+
+  <div id="stats-bar">
+    <div class="stat">
+      <div class="stat-label">Total Reviews</div>
+      <div class="stat-value" id="stat-total">&mdash;</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Avg Rating</div>
+      <div class="stat-value" id="stat-avg-rating">&mdash;</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Avg Sentiment</div>
+      <div class="stat-value" id="stat-avg-sentiment">&mdash;</div>
+    </div>
+    <div class="stat" id="stat-risk">
+      <div class="stat-label">Risk Flagged</div>
+      <div class="stat-value" id="stat-risk-count">&mdash;</div>
+    </div>
+  </div>
+
+  <div id="filters">
+    <select id="filter-rating" title="Filter by rating">
+      <option value="">All Ratings</option>
+      <option value="5">★★★★★ 5 stars</option>
+      <option value="4">★★★★☆ 4 stars</option>
+      <option value="3">★★★☆☆ 3 stars</option>
+      <option value="2">★★☆☆☆ 2 stars</option>
+      <option value="1">★☆☆☆☆ 1 star</option>
+    </select>
+
+    <select id="filter-risk" title="Filter by risk flag">
+      <option value="">All Reviews</option>
+      <option value="true">⚠ Risk Flagged</option>
+      <option value="false">No Risk Flag</option>
+    </select>
+
+    <select id="filter-category" title="Filter by category">
+      <option value="">All Categories</option>
+    </select>
+
+    <select id="filter-status" title="Filter by status">
+      <option value="">All Statuses</option>
+      <option value="ANALYZED">Analyzed</option>
+      <option value="ANALYSIS_FAILED">Failed</option>
+    </select>
+
+    <input type="text" id="filter-search" placeholder="Search author or review text…" />
+
+    <button class="filter-btn" id="apply-filters">Apply</button>
+    <button class="filter-btn" id="clear-filters">Clear</button>
+
+    <span class="filter-count" id="filter-count"></span>
+  </div>
+
+  <div id="review-list">
+    <div class="state-msg"><span class="spinner"></span> Loading reviews…</div>
+  </div>
+
+  <div id="pagination">
+    <button id="load-more" class="hidden">Load More</button>
+  </div>
+
+  <script>
+  (async () => {
+    // ─── Config ──────────────────────────────────────────────────────────────
+    const SUPABASE_URL   = 'REPLACE_WITH_SUPABASE_URL';
+    const SUPABASE_ANON  = 'REPLACE_WITH_SUPABASE_ANON_KEY';
+    const ALLOWED_EMAIL  = 'REPLACE_WITH_YOUR_EMAIL';  // e.g. 'you@gmail.com'
+    const PAGE_SIZE      = 20;
+    // ─────────────────────────────────────────────────────────────────────────
+
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    // ── Auth check ──────────────────────────────────────────────────────────
+    const { data: { session } } = await db.auth.getSession();
+    if (!session) { window.location.href = '/index.html'; return; }
+    if (session.user.email !== ALLOWED_EMAIL) {
+      await db.auth.signOut();
+      window.location.href = '/index.html';
+      return;
+    }
+    document.getElementById('user-email').textContent = session.user.email;
+
+    // ── Logout ───────────────────────────────────────────────────────────────
+    document.getElementById('logout-btn').onclick = async () => {
+      await db.auth.signOut();
+      window.location.href = '/index.html';
+    };
+
+    // ── State ────────────────────────────────────────────────────────────────
+    let currentOffset = 0;
+    let currentFilters = {};
+    let hasMore = false;
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+    function stars(rating) {
+      const full  = Math.round(rating || 0);
+      const empty = 5 - full;
+      return '★'.repeat(full) + '☆'.repeat(empty);
+    }
+
+    function formatDate(ts) {
+      if (!ts) return '';
+      try {
+        return new Date(ts).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      } catch { return ts; }
+    }
+
+    function sentimentClass(score) {
+      if (!score) return '';
+      if (score >= 7) return '';
+      if (score >= 5) return 'mid';
+      return 'low';
+    }
+
+    function escape(str) {
+      return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ── Stats ────────────────────────────────────────────────────────────────
+    async function fetchStats() {
+      const { data, error } = await db
+        .from('reviews')
+        .select('rating, sentiment_score, risk_flag');
+
+      if (error || !data) return;
+
+      const total    = data.length;
+      const avgRating    = total ? (data.reduce((s, r) => s + (r.rating || 0), 0) / total).toFixed(1) : '—';
+      const withSentiment = data.filter(r => r.sentiment_score != null);
+      const avgSentiment = withSentiment.length
+        ? (withSentiment.reduce((s, r) => s + r.sentiment_score, 0) / withSentiment.length).toFixed(1)
+        : '—';
+      const riskCount = data.filter(r => r.risk_flag).length;
+
+      document.getElementById('stat-total').textContent        = total;
+      document.getElementById('stat-avg-rating').textContent   = avgRating !== '—' ? avgRating + ' / 5' : '—';
+      document.getElementById('stat-avg-sentiment').textContent = avgSentiment !== '—' ? avgSentiment + ' / 10' : '—';
+      document.getElementById('stat-risk-count').textContent   = riskCount;
+    }
+
+    // ── Populate category dropdown ───────────────────────────────────────────
+    async function loadCategories() {
+      const { data } = await db.from('reviews').select('category');
+      if (!data) return;
+      const cats = [...new Set(data.map(r => r.category).filter(Boolean))].sort();
+      const sel  = document.getElementById('filter-category');
+      cats.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat; opt.textContent = cat;
+        sel.appendChild(opt);
+      });
+    }
+
+    // ── Fetch reviews ────────────────────────────────────────────────────────
+    async function fetchReviews(filters, offset) {
+      let q = db.from('reviews')
+        .select(`
+          review_id, salon_name, author_name, rating,
+          original_text, review_date, sentiment_score,
+          risk_flag, category, vietnamese_summary,
+          draft_response, status, profile_image_url, review_url
+        `)
+        .order('review_date', { ascending: false })
+        .range(offset, offset + PAGE_SIZE - 1);
+
+      if (filters.rating)   q = q.eq('rating', parseInt(filters.rating));
+      if (filters.risk !== '' && filters.risk != null)
+                            q = q.eq('risk_flag', filters.risk === 'true');
+      if (filters.category) q = q.eq('category', filters.category);
+      if (filters.status)   q = q.eq('status', filters.status);
+      if (filters.search) {
+        const term = filters.search.replace(/'/g, "''");
+        q = q.or(`author_name.ilike.%${term}%,original_text.ilike.%${term}%`);
+      }
+
+      const { data, error } = await q;
+      if (error) { console.error(error); return []; }
+      return data || [];
+    }
+
+    // ── Render card ──────────────────────────────────────────────────────────
+    function renderCard(r) {
+      const card = document.createElement('div');
+      card.className = 'card' + (r.risk_flag ? ' risk-flagged' : '') + (r.status === 'ANALYSIS_FAILED' ? ' failed' : '');
+
+      const avatar = r.profile_image_url
+        ? `<img class="avatar" src="${escape(r.profile_image_url)}" alt="" onerror="this.style.display='none'" />`
+        : '';
+
+      const sentiScore = r.sentiment_score;
+      const sentiLabel = sentiScore != null ? `${sentiScore}/10` : null;
+      const sentiPill  = sentiLabel
+        ? `<span class="badge sentiment-pill ${sentimentClass(sentiScore)}">${sentiLabel}</span>`
+        : '';
+
+      const riskBadge     = r.risk_flag ? `<span class="badge badge-risk">⚠ RISK</span>` : '';
+      const categoryBadge = r.category  ? `<span class="badge badge-category">${escape(r.category)}</span>` : '';
+      const failedBadge   = r.status === 'ANALYSIS_FAILED' ? `<span class="badge badge-failed">Analysis failed</span>` : '';
+
+      const reviewText = r.original_text
+        ? `<div class="review-text">${escape(r.original_text)}</div>`
+        : `<div class="no-text">Rating only — no text provided</div>`;
+
+      const hasDraft   = r.draft_response && r.draft_response.trim();
+      const draftText  = hasDraft
+        ? `<div class="draft-text">${escape(r.draft_response)}</div>`
+        : `<div class="no-draft">Draft unavailable</div>`;
+
+      const copyBtn = `<button class="copy-btn" ${hasDraft ? '' : 'disabled'} data-draft="${escape(r.draft_response || '')}">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy Draft
+      </button>`;
+
+      const reviewLink = r.review_url
+        ? `<a href="${escape(r.review_url)}" target="_blank" rel="noopener" style="font-size:0.75rem;color:var(--accent);text-decoration:none;margin-left:0.5rem;">View on Google ↗</a>`
+        : '';
+
+      const vietSection = r.vietnamese_summary
+        ? `<div class="viet-section">
+            <button class="viet-toggle" onclick="toggleViet(this)">
+              Vietnamese Summary for Owner
+              <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="viet-content">${escape(r.vietnamese_summary)}</div>
+           </div>`
+        : '';
+
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="card-author">
+            ${avatar}
+            <div>
+              <div class="author-name">${escape(r.author_name || 'Anonymous')}</div>
+              <div class="review-date">
+                <span class="stars">${stars(r.rating)}</span>
+                &nbsp;${formatDate(r.review_date)}${reviewLink}
+              </div>
+            </div>
+          </div>
+          <div class="card-badges">
+            ${riskBadge}${failedBadge}${categoryBadge}${sentiPill}
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-review">
+            <div class="col-label">Customer Review</div>
+            ${reviewText}
+          </div>
+          <div class="card-draft">
+            <div class="col-label">AI Draft Response</div>
+            ${draftText}
+            ${copyBtn}
+          </div>
+        </div>
+        ${vietSection}
+      `;
+
+      // Wire up copy button
+      const btn = card.querySelector('.copy-btn');
+      if (btn && !btn.disabled) {
+        btn.addEventListener('click', () => copyDraft(btn.dataset.draft, btn));
+      }
+
+      return card;
+    }
+
+    // ── Copy draft ───────────────────────────────────────────────────────────
+    function copyDraft(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerHTML;
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = orig;
+          btn.classList.remove('copied');
+        }, 2000);
+      }).catch(() => {
+        // Fallback for older browsers
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Draft`; btn.classList.remove('copied'); }, 2000);
+      });
+    }
+
+    // ── Load and render ──────────────────────────────────────────────────────
+    async function loadReviews(reset = false) {
+      if (reset) {
+        currentOffset = 0;
+        document.getElementById('review-list').innerHTML = '<div class="state-msg"><span class="spinner"></span> Loading…</div>';
+        document.getElementById('load-more').classList.add('hidden');
+      }
+
+      const data = await fetchReviews(currentFilters, currentOffset);
+      const list = document.getElementById('review-list');
+
+      if (reset) list.innerHTML = '';
+
+      if (data.length === 0 && currentOffset === 0) {
+        list.innerHTML = '<div class="state-msg">No reviews found matching your filters.</div>';
+        document.getElementById('load-more').classList.add('hidden');
+        document.getElementById('filter-count').textContent = '';
+        return;
+      }
+
+      data.forEach(r => list.appendChild(renderCard(r)));
+
+      hasMore = data.length === PAGE_SIZE;
+      const loadMoreBtn = document.getElementById('load-more');
+      if (hasMore) {
+        loadMoreBtn.classList.remove('hidden');
+        loadMoreBtn.disabled = false;
+        loadMoreBtn.textContent = 'Load More';
+      } else {
+        loadMoreBtn.classList.add('hidden');
+      }
+
+      const total = document.getElementById('stat-total').textContent;
+      const showing = currentOffset + data.length;
+      document.getElementById('filter-count').textContent =
+        hasMore ? `Showing ${showing} of ${total}` : `Showing ${showing}`;
+    }
+
+    // ── Filters ──────────────────────────────────────────────────────────────
+    function readFilters() {
+      return {
+        rating:   document.getElementById('filter-rating').value,
+        risk:     document.getElementById('filter-risk').value,
+        category: document.getElementById('filter-category').value,
+        status:   document.getElementById('filter-status').value,
+        search:   document.getElementById('filter-search').value.trim(),
+      };
+    }
+
+    document.getElementById('apply-filters').onclick = () => {
+      currentFilters = readFilters();
+      loadReviews(true);
+    };
+
+    document.getElementById('clear-filters').onclick = () => {
+      document.getElementById('filter-rating').value   = '';
+      document.getElementById('filter-risk').value     = '';
+      document.getElementById('filter-category').value = '';
+      document.getElementById('filter-status').value   = '';
+      document.getElementById('filter-search').value   = '';
+      currentFilters = {};
+      loadReviews(true);
+    };
+
+    document.getElementById('filter-search').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('apply-filters').click();
+    });
+
+    // ── Load More ────────────────────────────────────────────────────────────
+    document.getElementById('load-more').onclick = async () => {
+      const btn = document.getElementById('load-more');
+      btn.disabled = true;
+      btn.textContent = 'Loading…';
+      currentOffset += PAGE_SIZE;
+      await loadReviews(false);
+    };
+
+    // ── Vietnamese toggle ────────────────────────────────────────────────────
+    window.toggleViet = (btn) => {
+      btn.classList.toggle('open');
+      btn.nextElementSibling.classList.toggle('open');
+    };
+
+    // ── Init ─────────────────────────────────────────────────────────────────
+    fetchStats();
+    loadCategories();
+    loadReviews(true);
+
+  })();
+  </script>
+</body>
+</html>
