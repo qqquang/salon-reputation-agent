@@ -450,7 +450,22 @@
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
     // ── Auth check ──────────────────────────────────────────────────────────
-    const { data: { session } } = await db.auth.getSession();
+    // Wait for Supabase to process any hash tokens (magic link / OAuth callback)
+    const getSession = () => new Promise(resolve => {
+      db.auth.onAuthStateChange((event, session) => {
+        resolve(session);
+      });
+      // Also check existing session as fallback
+      db.auth.getSession().then(({ data }) => {
+        if (data.session) resolve(data.session);
+      });
+    });
+
+    const session = await Promise.race([
+      getSession(),
+      new Promise(resolve => setTimeout(() => resolve(null), 5000))
+    ]);
+
     if (!session) { window.location.href = '/index.html'; return; }
     if (session.user.email !== ALLOWED_EMAIL) {
       await db.auth.signOut();
