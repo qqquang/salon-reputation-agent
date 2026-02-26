@@ -472,6 +472,139 @@
     .copy-btn:disabled { background: #dadce0; color: #80868b; cursor: not-allowed; }
     .copy-btn.copied { background: var(--ok); }
 
+    /* "View history · Regenerate" link shown in default draft col */
+    .draft-history-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      margin-top: 0.625rem;
+      font-size: 0.78rem;
+      color: var(--google-blue);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: inherit;
+      text-decoration: none;
+    }
+    .draft-history-link:hover { text-decoration: underline; }
+
+    /* ── Draft history panel (replaces draft col when expanded) ── */
+    .draft-history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.625rem;
+    }
+
+    .regen-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.32rem 0.75rem;
+      border: 1px solid var(--google-blue);
+      border-radius: 14px;
+      background: white;
+      color: var(--google-blue);
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .regen-btn:hover:not(:disabled) { background: #e8f0fe; }
+    .regen-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .draft-history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      overflow-y: auto;
+      max-height: 320px;
+    }
+
+    .draft-item {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.625rem 0.75rem;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      transition: border-color 0.15s;
+    }
+    .draft-item.is-favourite { border-left: 3px solid #f59e0b; }
+
+    .draft-item-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .heart-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      color: var(--muted);
+      padding: 0;
+      line-height: 1;
+      flex-shrink: 0;
+      transition: color 0.15s, transform 0.15s;
+    }
+    .heart-btn:hover { transform: scale(1.2); }
+    .heart-btn.active { color: #f59e0b; }
+
+    .draft-item-text {
+      font-size: 0.84rem;
+      line-height: 1.6;
+      color: #1a5e35;
+      flex: 1;
+      word-break: break-word;
+    }
+
+    .draft-item-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .draft-item-date {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .original-badge {
+      font-size: 0.68rem;
+      font-weight: 600;
+      background: #e8f0fe;
+      color: var(--google-blue);
+      padding: 0.1rem 0.4rem;
+      border-radius: 10px;
+    }
+
+    .draft-item-copy {
+      font-size: 0.72rem;
+      color: var(--google-blue);
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.15rem 0.5rem;
+      cursor: pointer;
+      margin-left: auto;
+      transition: background 0.12s;
+    }
+    .draft-item-copy:hover { background: #e8f0fe; }
+    .draft-item-copy.copied { background: #e6f4ea; color: #137333; border-color: #ceead6; }
+
+    .draft-loading {
+      font-size: 0.84rem;
+      color: var(--muted);
+      font-style: italic;
+      padding: 0.5rem 0;
+    }
+
     /* ── Vietnamese summary (collapsible) ── */
     .viet-section {
       border-top: 1px solid var(--border);
@@ -1175,7 +1308,7 @@
            </a>`
         : '';
 
-      // Draft
+      // Draft (default view — static baseline from reviews table)
       const hasDraft  = r.draft_response && r.draft_response.trim();
       const draftHTML = hasDraft
         ? `<div class="draft-text">${escape(r.draft_response)}</div>`
@@ -1226,6 +1359,9 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               Copy draft
             </button>
+            <button class="draft-history-link" data-review-id="${escape(r.review_id)}" data-baseline="${escape(r.draft_response || '')}">
+              ↻ Regenerate · View history
+            </button>
           </div>
         </div>
         ${vietSection}
@@ -1235,6 +1371,15 @@
       const btn = card.querySelector('.copy-btn');
       if (btn && !btn.disabled) {
         btn.addEventListener('click', () => copyDraft(btn.dataset.draft, btn));
+      }
+
+      // Wire up "View history · Regenerate" link
+      const histLink = card.querySelector('.draft-history-link');
+      if (histLink) {
+        histLink.addEventListener('click', () => {
+          const draftCol = histLink.closest('.draft-col');
+          loadDraftsForCard(histLink.dataset.reviewId, histLink.dataset.baseline, draftCol);
+        });
       }
 
       return card;
@@ -1358,6 +1503,168 @@
       btn.classList.toggle('open');
       btn.nextElementSibling.classList.toggle('open');
     };
+
+    // ── Draft history, regenerate, favourites ────────────────────────────────
+
+    async function loadDraftsForCard(review_id, baseline, draftCol) {
+      // Show loading state
+      draftCol.innerHTML = '<p class="draft-loading"><span class="spinner"></span> Loading history…</p>';
+
+      let { data: drafts, error } = await db
+        .from('review_drafts')
+        .select('id, draft_text, is_favourite, is_original, created_at')
+        .eq('review_id', review_id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        draftCol.innerHTML = '<p class="draft-loading">Failed to load drafts.</p>';
+        return;
+      }
+
+      // Seed baseline from reviews.draft_response if table is empty for this review
+      if ((!drafts || drafts.length === 0) && baseline && baseline.trim()) {
+        const { data: seeded } = await db
+          .from('review_drafts')
+          .insert({ review_id, draft_text: baseline, is_original: true, model: 'python-pipeline' })
+          .select('id, draft_text, is_favourite, is_original, created_at')
+          .single();
+        drafts = seeded ? [seeded] : [];
+      }
+
+      renderDraftList(drafts || [], draftCol, review_id, baseline);
+    }
+
+    function renderDraftList(drafts, draftCol, review_id, baseline) {
+      draftCol.innerHTML = '';
+
+      // Header row: label + regenerate button
+      const header = document.createElement('div');
+      header.className = 'draft-history-header';
+      header.innerHTML = `
+        <div style="display:flex;align-items:center;gap:0.4rem;">
+          <span class="draft-label">AI Draft History</span>
+          <span class="ai-badge">AI</span>
+        </div>
+        <button class="regen-btn">↻ Regenerate</button>
+      `;
+      draftCol.appendChild(header);
+
+      // Draft list
+      const list = document.createElement('div');
+      list.className = 'draft-history-list';
+
+      if (drafts.length === 0) {
+        list.innerHTML = '<p class="draft-loading" style="font-style:italic;">No drafts yet — click Regenerate to create one.</p>';
+      } else {
+        drafts.forEach(d => {
+          const item = document.createElement('div');
+          item.className = 'draft-item' + (d.is_favourite ? ' is-favourite' : '');
+          item.dataset.draftId = d.id;
+
+          const dateStr = d.created_at
+            ? new Date(d.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : '';
+          const originalBadge = d.is_original ? '<span class="original-badge">✦ Original</span>' : '';
+
+          item.innerHTML = `
+            <div class="draft-item-top">
+              <button class="heart-btn ${d.is_favourite ? 'active' : ''}" data-fav="${d.is_favourite}" title="${d.is_favourite ? 'Remove favourite' : 'Favourite this draft'}">${d.is_favourite ? '♥' : '♡'}</button>
+              <div class="draft-item-text">${escape(d.draft_text)}</div>
+            </div>
+            <div class="draft-item-meta">
+              <span class="draft-item-date">${dateStr}</span>
+              ${originalBadge}
+              <button class="draft-item-copy" data-text="${escape(d.draft_text)}">Copy</button>
+            </div>
+          `;
+
+          // Wire heart
+          const heart = item.querySelector('.heart-btn');
+          heart.addEventListener('click', () => toggleDraftFavourite(d.id, heart.dataset.fav === 'true', heart, item));
+
+          // Wire copy
+          const copyBtn = item.querySelector('.draft-item-copy');
+          copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(d.draft_text).then(() => {
+              copyBtn.textContent = '✓ Copied!';
+              copyBtn.classList.add('copied');
+              setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
+            }).catch(() => {
+              const ta = document.createElement('textarea');
+              ta.value = d.draft_text; ta.style.cssText = 'position:fixed;opacity:0';
+              document.body.appendChild(ta); ta.select();
+              document.execCommand('copy');
+              document.body.removeChild(ta);
+              copyBtn.textContent = '✓ Copied!';
+              copyBtn.classList.add('copied');
+              setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
+            });
+          });
+
+          list.appendChild(item);
+        });
+      }
+
+      draftCol.appendChild(list);
+
+      // Wire regenerate button
+      const regenBtn = header.querySelector('.regen-btn');
+      regenBtn.addEventListener('click', () => regenerateDraft(review_id, baseline, draftCol));
+    }
+
+    async function toggleDraftFavourite(draft_id, current, heartEl, itemEl) {
+      const nowFav = !current;
+      const { error } = await db
+        .from('review_drafts')
+        .update({ is_favourite: nowFav })
+        .eq('id', draft_id);
+      if (!error) {
+        heartEl.textContent = nowFav ? '♥' : '♡';
+        heartEl.dataset.fav = String(nowFav);
+        heartEl.classList.toggle('active', nowFav);
+        heartEl.title = nowFav ? 'Remove favourite' : 'Favourite this draft';
+        itemEl.classList.toggle('is-favourite', nowFav);
+      }
+    }
+
+    async function regenerateDraft(review_id, baseline, draftCol) {
+      const regenBtn = draftCol.querySelector('.regen-btn');
+      if (regenBtn) { regenBtn.disabled = true; regenBtn.textContent = '↻ Generating…'; }
+
+      try {
+        const { data: { session } } = await db.auth.getSession();
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/regenerate-draft`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ review_id })
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          if (regenBtn) { regenBtn.disabled = false; regenBtn.textContent = '↻ Regenerate'; }
+          // Show brief error in list area
+          const list = draftCol.querySelector('.draft-history-list');
+          if (list) {
+            const errMsg = document.createElement('p');
+            errMsg.className = 'draft-loading';
+            errMsg.style.color = 'var(--risk)';
+            errMsg.textContent = `Error: ${err.error || 'Failed to generate'}`;
+            list.prepend(errMsg);
+            setTimeout(() => errMsg.remove(), 4000);
+          }
+          return;
+        }
+
+        // Reload full history to show new draft at top
+        await loadDraftsForCard(review_id, baseline, draftCol);
+      } catch (err) {
+        console.error('Regenerate error:', err);
+        if (regenBtn) { regenBtn.disabled = false; regenBtn.textContent = '↻ Regenerate'; }
+      }
+    }
 
     // ── Lightbox ─────────────────────────────────────────────────────────────
     window.openLightbox = (url) => {
