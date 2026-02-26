@@ -1308,12 +1308,6 @@
            </a>`
         : '';
 
-      // Draft (default view — static baseline from reviews table)
-      const hasDraft  = r.draft_response && r.draft_response.trim();
-      const draftHTML = hasDraft
-        ? `<div class="draft-text">${escape(r.draft_response)}</div>`
-        : `<div class="no-draft">No draft available yet</div>`;
-
       // Vietnamese section
       const vietSection = r.vietnamese_summary
         ? `<div class="viet-section">
@@ -1348,39 +1342,17 @@
             </div>
           </div>
 
-          <!-- Right: AI Draft -->
-          <div class="draft-col">
-            <div class="draft-col-header">
-              <span class="draft-label">AI Draft Response</span>
-              <span class="ai-badge">AI</span>
-            </div>
-            ${draftHTML}
-            <button class="copy-btn" ${hasDraft ? '' : 'disabled'} data-draft="${escape(r.draft_response || '')}">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              Copy draft
-            </button>
-            <button class="draft-history-link" data-review-id="${escape(r.review_id)}" data-baseline="${escape(r.draft_response || '')}">
-              ↻ Regenerate · View history
-            </button>
+          <!-- Right: AI Draft History -->
+          <div class="draft-col" data-review-id="${escape(r.review_id)}" data-baseline="${escape(r.draft_response || '')}">
+            <p class="draft-loading"><span class="spinner"></span> Loading…</p>
           </div>
         </div>
         ${vietSection}
       `;
 
-      // Wire up copy button
-      const btn = card.querySelector('.copy-btn');
-      if (btn && !btn.disabled) {
-        btn.addEventListener('click', () => copyDraft(btn.dataset.draft, btn));
-      }
-
-      // Wire up "View history · Regenerate" link
-      const histLink = card.querySelector('.draft-history-link');
-      if (histLink) {
-        histLink.addEventListener('click', () => {
-          const draftCol = histLink.closest('.draft-col');
-          loadDraftsForCard(histLink.dataset.reviewId, histLink.dataset.baseline, draftCol);
-        });
-      }
+      // Auto-load draft history immediately
+      const draftCol = card.querySelector('.draft-col');
+      loadDraftsForCard(r.review_id, r.draft_response || '', draftCol);
 
       return card;
     }
