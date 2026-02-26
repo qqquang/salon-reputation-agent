@@ -95,6 +95,16 @@
     }
     #logout-btn:hover { background: #f8f9fa; }
 
+    /* ── Pull reviews bar ── */
+    #pull-bar {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 0.5rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
     #pull-btn {
       display: inline-flex;
       align-items: center;
@@ -108,9 +118,17 @@
       font-weight: 500;
       cursor: pointer;
       transition: background 0.15s, opacity 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
     #pull-btn:hover:not(:disabled) { background: #16a34a; }
-    #pull-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    #pull-btn:disabled { opacity: 0.5; cursor: not-allowed; background: var(--ok); }
+
+    .pull-bar-hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-style: italic;
+    }
 
     #pull-toast {
       display: none;
@@ -861,10 +879,6 @@
     </div>
     <div class="header-right">
       <span id="user-email"></span>
-      <button id="pull-btn" title="Fetch new reviews from Google via DataForSEO">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.49"/></svg>
-        Pull reviews
-      </button>
       <button id="logout-btn">Sign out</button>
     </div>
   </header>
@@ -945,6 +959,14 @@
     <button class="filter-btn" id="clear-filters">Clear</button>
 
     <span class="filter-count" id="filter-count"></span>
+  </div>
+
+  <div id="pull-bar">
+    <button id="pull-btn" disabled title="Select a salon first">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.49"/></svg>
+      Pull new reviews
+    </button>
+    <span class="pull-bar-hint" id="pull-bar-hint">Select a salon above to pull reviews</span>
   </div>
 
   <div id="review-list">
@@ -1170,6 +1192,7 @@
           currentFilters.salon = name;
         }
         loadReviews(true);
+        updatePullBar();
       });
 
       chip.querySelector('.chip-star').addEventListener('click', (e) => {
@@ -1228,6 +1251,7 @@
             c.classList.toggle('active', c.dataset.salon === name);
           });
           loadReviews(true);
+          updatePullBar();
         });
 
         // Click star → toggle fav
@@ -1477,6 +1501,7 @@
     document.getElementById('apply-filters').onclick = () => {
       currentFilters = readFilters();
       loadReviews(true);
+      updatePullBar();
     };
 
     document.getElementById('clear-filters').onclick = () => {
@@ -1488,6 +1513,7 @@
       document.getElementById('filter-favs').textContent = '☆ Fav Salons';
       document.querySelectorAll('#salon-bar-chips .salon-chip').forEach(c => c.classList.remove('active'));
       loadReviews(true);
+      updatePullBar();
     };
 
     // ── Favourites toggle ─────────────────────────────────────────────────
@@ -1704,6 +1730,25 @@
     });
 
     // ── Pull new reviews ─────────────────────────────────────────────────────
+    const PULL_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.49"/></svg>`;
+
+    function updatePullBar() {
+      const salon = currentFilters.salon || '';
+      const btn  = document.getElementById('pull-btn');
+      const hint = document.getElementById('pull-bar-hint');
+      if (salon) {
+        btn.disabled = false;
+        btn.title = `Pull new reviews for ${salon}`;
+        btn.innerHTML = `${PULL_SVG} Pull new reviews for <strong style="margin-left:0.2em">${escape(salon)}</strong>`;
+        hint.textContent = '';
+      } else {
+        btn.disabled = true;
+        btn.title = 'Select a salon first';
+        btn.innerHTML = `${PULL_SVG} Pull new reviews`;
+        hint.textContent = 'Select a salon above to pull reviews';
+      }
+    }
+
     function showToast(msg, isError = false, duration = 4000) {
       const toast = document.getElementById('pull-toast');
       toast.textContent = msg;
@@ -1713,12 +1758,30 @@
     }
 
     document.getElementById('pull-btn').addEventListener('click', async () => {
+      const salon = currentFilters.salon || '';
+      if (!salon) return;
+
       const btn = document.getElementById('pull-btn');
       btn.disabled = true;
       btn.innerHTML = `<span class="spinner" style="border-color:rgba(255,255,255,0.3);border-top-color:white;width:12px;height:12px;"></span> Pulling…`;
-      showToast('Fetching reviews from Google… this may take up to 60s', false, 65000);
+      showToast(`Fetching reviews for ${salon}… this may take up to 60s`, false, 65000);
 
       try {
+        // Look up CID for this salon from the DB
+        const { data: cidRow } = await db
+          .from('reviews')
+          .select('cid')
+          .eq('salon_name', salon)
+          .not('cid', 'is', null)
+          .limit(1)
+          .maybeSingle();
+
+        if (!cidRow?.cid) {
+          document.getElementById('pull-toast').classList.remove('show');
+          showToast(`No Google CID found for "${salon}" — cannot pull reviews`, true);
+          return;
+        }
+
         const { data: { session } } = await db.auth.getSession();
         const res = await fetch(`${SUPABASE_URL}/functions/v1/pull-reviews`, {
           method: 'POST',
@@ -1727,7 +1790,7 @@
             'apikey': SUPABASE_ANON,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({})
+          body: JSON.stringify({ cid: cidRow.cid, salonName: salon })
         });
 
         document.getElementById('pull-toast').classList.remove('show');
@@ -1736,7 +1799,7 @@
         if (!res.ok) {
           showToast(`Error: ${data.error || 'Pull failed'}`, true);
         } else {
-          const msg = `Done! ${data.new} new review${data.new !== 1 ? 's' : ''} added, ${data.skipped} already existed.`;
+          const msg = `Done! ${data.new} new review${data.new !== 1 ? 's' : ''} added for ${salon}, ${data.skipped} already existed.`;
           showToast(msg, false, 6000);
           if (data.new > 0) setTimeout(() => loadReviews(true), 1000);
         }
@@ -1744,8 +1807,7 @@
         document.getElementById('pull-toast').classList.remove('show');
         showToast(`Error: ${err.message}`, true);
       } finally {
-        btn.disabled = false;
-        btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.49"/></svg> Pull reviews`;
+        updatePullBar();
       }
     });
 
