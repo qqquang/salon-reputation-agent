@@ -21,15 +21,23 @@ Deno.serve(async (req) => {
 
   try {
     // ── Auth ──────────────────────────────────────────────────────────────────
+    // Use anon key + user's Bearer token to validate the JWT
+    const token = req.headers.get('Authorization')?.replace('Bearer ', '') ?? ''
+    const authClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: `Bearer ${token}` } } }
+    )
+    const { data: { user }, error: authErr } = await authClient.auth.getUser()
+    if (authErr || !user || user.email !== ALLOWED_EMAIL) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders })
+    }
+
+    // Service role client for DB operations (bypasses RLS)
     const db = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
-    const token = req.headers.get('Authorization')?.replace('Bearer ', '') ?? ''
-    const { data: { user }, error: authErr } = await db.auth.getUser(token)
-    if (authErr || !user || user.email !== ALLOWED_EMAIL) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders })
-    }
 
     // ── Parse body ────────────────────────────────────────────────────────────
     const { review_id } = await req.json()
