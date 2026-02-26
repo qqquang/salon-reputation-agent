@@ -95,6 +95,41 @@
     }
     #logout-btn:hover { background: #f8f9fa; }
 
+    #pull-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.875rem;
+      background: var(--ok);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    #pull-btn:hover:not(:disabled) { background: #16a34a; }
+    #pull-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    #pull-toast {
+      display: none;
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #202124;
+      color: white;
+      padding: 0.6rem 1.25rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      z-index: 500;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      white-space: nowrap;
+    }
+    #pull-toast.show { display: block; }
+    #pull-toast.error { background: var(--risk); }
+
     /* ── Stats bar ── */
     #stats-bar {
       display: flex;
@@ -826,6 +861,10 @@
     </div>
     <div class="header-right">
       <span id="user-email"></span>
+      <button id="pull-btn" title="Fetch new reviews from Google via DataForSEO">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.49"/></svg>
+        Pull reviews
+      </button>
       <button id="logout-btn">Sign out</button>
     </div>
   </header>
@@ -915,6 +954,9 @@
   <div id="pagination">
     <button id="load-more" class="hidden">Load more</button>
   </div>
+
+  <!-- Pull status toast -->
+  <div id="pull-toast"></div>
 
   <!-- Lightbox for review photos -->
   <div id="lightbox">
@@ -1658,6 +1700,52 @@
       if (e.key === 'Escape') {
         document.getElementById('lightbox').classList.remove('open');
         document.getElementById('lightbox-img').src = '';
+      }
+    });
+
+    // ── Pull new reviews ─────────────────────────────────────────────────────
+    function showToast(msg, isError = false, duration = 4000) {
+      const toast = document.getElementById('pull-toast');
+      toast.textContent = msg;
+      toast.classList.toggle('error', isError);
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), duration);
+    }
+
+    document.getElementById('pull-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('pull-btn');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner" style="border-color:rgba(255,255,255,0.3);border-top-color:white;width:12px;height:12px;"></span> Pulling…`;
+      showToast('Fetching reviews from Google… this may take up to 60s', false, 65000);
+
+      try {
+        const { data: { session } } = await db.auth.getSession();
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/pull-reviews`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': SUPABASE_ANON,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({})
+        });
+
+        document.getElementById('pull-toast').classList.remove('show');
+        const data = await res.json();
+
+        if (!res.ok) {
+          showToast(`Error: ${data.error || 'Pull failed'}`, true);
+        } else {
+          const msg = `Done! ${data.new} new review${data.new !== 1 ? 's' : ''} added, ${data.skipped} already existed.`;
+          showToast(msg, false, 6000);
+          if (data.new > 0) setTimeout(() => loadReviews(true), 1000);
+        }
+      } catch (err) {
+        document.getElementById('pull-toast').classList.remove('show');
+        showToast(`Error: ${err.message}`, true);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.49"/></svg> Pull reviews`;
       }
     });
 
