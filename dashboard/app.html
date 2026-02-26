@@ -14,17 +14,18 @@
       --risk:        #ef4444;
       --ok:          #22c55e;
       --warn:        #f59e0b;
-      --bg:          #f8fafc;
+      --google-blue: #1a73e8;
+      --bg:          #f1f3f4;
       --card:        #ffffff;
-      --border:      #e2e8f0;
-      --text:        #1e293b;
-      --muted:       #64748b;
+      --border:      #e0e0e0;
+      --text:        #202124;
+      --muted:       #5f6368;
       --draft-bg:    #f0fdf4;
       --draft-border:#bbf7d0;
     }
 
     body {
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: 'Google Sans', system-ui, -apple-system, sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
@@ -32,33 +33,67 @@
 
     /* ── Header ── */
     header {
-      background: var(--accent);
-      color: white;
-      padding: 0.875rem 1.5rem;
+      background: var(--card);
+      color: var(--text);
+      padding: 0 1.5rem;
+      height: 56px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       position: sticky;
       top: 0;
       z-index: 100;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
     }
 
-    header h1 { font-size: 1.1rem; font-weight: 700; }
-    header .user-info { font-size: 0.8rem; opacity: 0.85; }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .header-logo {
+      width: 32px; height: 32px;
+      background: var(--google-blue);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    #user-email {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
 
     #logout-btn {
-      background: rgba(255,255,255,0.2);
-      color: white;
-      border: 1px solid rgba(255,255,255,0.4);
-      padding: 0.4rem 0.875rem;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      font-weight: 600;
+      background: none;
+      color: var(--google-blue);
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.875rem;
+      border-radius: 4px;
+      font-size: 0.82rem;
+      font-weight: 500;
       cursor: pointer;
       transition: background 0.15s;
     }
-    #logout-btn:hover { background: rgba(255,255,255,0.3); }
+    #logout-btn:hover { background: #f8f9fa; }
 
     /* ── Stats bar ── */
     #stats-bar {
@@ -72,21 +107,21 @@
     .stat {
       flex: 1;
       min-width: 120px;
-      padding: 1rem 1.5rem;
+      padding: 0.875rem 1.5rem;
       border-right: 1px solid var(--border);
       text-align: center;
     }
     .stat:last-child { border-right: none; }
     .stat-label {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-weight: 600;
+      letter-spacing: 0.06em;
+      font-weight: 500;
     }
     .stat-value {
-      font-size: 1.6rem;
-      font-weight: 800;
+      font-size: 1.5rem;
+      font-weight: 700;
       color: var(--text);
       margin-top: 0.2rem;
       line-height: 1;
@@ -95,9 +130,9 @@
 
     /* ── Filters ── */
     #filters {
-      background: #f1f5f9;
+      background: var(--card);
       border-bottom: 1px solid var(--border);
-      padding: 0.75rem 1.5rem;
+      padding: 0.625rem 1.5rem;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
@@ -106,10 +141,10 @@
 
     #filters select,
     #filters input[type="text"] {
-      padding: 0.45rem 0.75rem;
+      padding: 0.4rem 0.7rem;
       border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 0.85rem;
+      border-radius: 4px;
+      font-size: 0.83rem;
       color: var(--text);
       background: var(--card);
       outline: none;
@@ -117,21 +152,21 @@
     }
 
     #filter-search { min-width: 200px; flex: 1; max-width: 300px; }
-
-    #filters select:focus, #filters input:focus { border-color: var(--accent); }
+    #filters select:focus, #filters input:focus { border-color: var(--google-blue); }
 
     .filter-btn {
-      padding: 0.45rem 1rem;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
+      padding: 0.4rem 1rem;
+      border-radius: 4px;
+      font-size: 0.83rem;
+      font-weight: 500;
       cursor: pointer;
       border: none;
-      transition: opacity 0.15s;
+      transition: background 0.15s;
     }
-    .filter-btn:hover { opacity: 0.85; }
-    #apply-filters  { background: var(--accent); color: white; }
+    #apply-filters  { background: var(--google-blue); color: white; }
+    #apply-filters:hover { background: #1557b0; }
     #clear-filters  { background: var(--card); color: var(--muted); border: 1px solid var(--border); }
+    #clear-filters:hover { background: #f8f9fa; }
 
     .filter-count {
       font-size: 0.8rem;
@@ -145,7 +180,7 @@
       display: flex;
       flex-direction: column;
       gap: 1rem;
-      max-width: 1400px;
+      max-width: 1200px;
       margin: 0 auto;
     }
 
@@ -161,7 +196,7 @@
       display: inline-block;
       width: 20px; height: 20px;
       border: 3px solid var(--border);
-      border-top-color: var(--accent);
+      border-top-color: var(--google-blue);
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
       vertical-align: middle;
@@ -169,170 +204,450 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Card ── */
+    /* ── Card — Google style ── */
     .card {
       background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: 8px;
       overflow: hidden;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-      transition: box-shadow 0.15s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.07);
+      transition: box-shadow 0.2s;
     }
-    .card:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.09); }
+    .card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08); }
     .card.risk-flagged { border-left: 4px solid var(--risk); }
-    .card.failed { opacity: 0.6; }
 
-    .card-header {
-      padding: 0.875rem 1rem 0.5rem;
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 0.5rem;
-      flex-wrap: wrap;
+    /* Two-column layout: left = review, right = AI draft */
+    .card-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
     }
 
-    .card-author {
+    /* ── Left: Google-style review ── */
+    .review-col {
+      padding: 1rem 1.25rem;
+      border-right: 1px solid var(--border);
+    }
+
+    .reviewer-row {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
+      margin-bottom: 0.6rem;
     }
 
-    .avatar {
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      object-fit: cover;
-      background: var(--border);
+    /* Avatar circle with initial fallback */
+    .avatar-wrap {
+      position: relative;
+      width: 40px; height: 40px;
       flex-shrink: 0;
     }
 
-    .author-name { font-weight: 700; font-size: 0.925rem; }
-    .review-date { font-size: 0.78rem; color: var(--muted); }
+    .avatar-img {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
 
-    .card-badges {
+    .avatar-initial {
+      width: 40px; height: 40px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
-      gap: 0.4rem;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .reviewer-info { flex: 1; min-width: 0; }
+
+    .reviewer-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .reviewer-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.1rem;
+    }
+
+    /* Google-style yellow stars */
+    .google-stars {
+      display: flex;
+      gap: 1px;
+    }
+
+    .star-svg {
+      width: 14px; height: 14px;
+    }
+
+    .star-full  { fill: #fbbc04; }
+    .star-empty { fill: #e0e0e0; }
+
+    .review-date-text {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .review-body-text {
+      font-size: 0.875rem;
+      line-height: 1.6;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-top: 0.5rem;
+    }
+
+    .no-review-text {
+      font-size: 0.875rem;
+      color: var(--muted);
+      font-style: italic;
+      margin-top: 0.5rem;
+    }
+
+    /* Review photo grid */
+    .review-photos {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.625rem;
+    }
+
+    .review-photo {
+      width: 72px;
+      height: 72px;
+      object-fit: cover;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.15s;
+      background: var(--border);
+    }
+    .review-photo:hover { opacity: 0.85; transform: scale(1.04); }
+
+    /* Lightbox */
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    #lightbox.open { display: flex; }
+    #lightbox img {
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    #lightbox-close {
+      position: absolute;
+      top: 1rem; right: 1.25rem;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+      line-height: 1;
+      opacity: 0.8;
+      background: none;
+      border: none;
+    }
+    #lightbox-close:hover { opacity: 1; }
+
+    .review-footer {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
       flex-wrap: wrap;
     }
 
+    .google-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.78rem;
+      color: var(--google-blue);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .google-link:hover { text-decoration: underline; }
+
+    /* Badges */
     .badge {
-      padding: 0.2rem 0.55rem;
-      border-radius: 20px;
-      font-size: 0.72rem;
-      font-weight: 700;
+      padding: 0.18rem 0.5rem;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 600;
       letter-spacing: 0.02em;
       white-space: nowrap;
     }
     .badge-risk     { background: #fef2f2; color: var(--risk); border: 1px solid #fecaca; }
-    .badge-category { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-    .badge-failed   { background: #f8fafc; color: var(--muted); border: 1px solid var(--border); }
+    .badge-category { background: #e8f0fe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .badge-failed   { background: #f8f9fa; color: var(--muted); border: 1px solid var(--border); }
 
-    .stars { color: var(--warn); font-size: 0.9rem; letter-spacing: -1px; }
     .sentiment-pill {
-      background: #f0fdf4;
-      color: #166534;
-      border: 1px solid #bbf7d0;
-      padding: 0.2rem 0.55rem;
-      border-radius: 20px;
-      font-size: 0.72rem;
-      font-weight: 700;
-    }
-    .sentiment-pill.low { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
-    .sentiment-pill.mid { background: #fffbeb; color: #92400e; border-color: #fde68a; }
-
-    /* ── Card body (two columns) ── */
-    .card-body {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
-      border-top: 1px solid var(--border);
-    }
-
-    .card-review, .card-draft {
-      padding: 0.875rem 1rem;
-      font-size: 0.875rem;
-      line-height: 1.65;
-    }
-
-    .card-review {
-      border-right: 1px solid var(--border);
-      color: var(--text);
-    }
-
-    .col-label {
+      padding: 0.18rem 0.5rem;
+      border-radius: 12px;
       font-size: 0.7rem;
-      font-weight: 700;
+      font-weight: 600;
+      background: #e6f4ea;
+      color: #137333;
+      border: 1px solid #ceead6;
+    }
+    .sentiment-pill.low { background: #fce8e6; color: #c5221f; border-color: #f5c6c5; }
+    .sentiment-pill.mid { background: #fef9e3; color: #ea8600; border-color: #fde89a; }
+
+    /* ── Right: AI Draft ── */
+    .draft-col {
+      padding: 1rem 1.25rem;
+      background: #fafffe;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .draft-col-header {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.625rem;
+    }
+
+    .draft-label {
+      font-size: 0.72rem;
+      font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: var(--muted);
-      margin-bottom: 0.4rem;
     }
 
-    .review-text { white-space: pre-wrap; word-break: break-word; }
-    .no-text { color: var(--muted); font-style: italic; }
-
-    .card-draft { background: var(--draft-bg); }
+    .ai-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      background: #e8f0fe;
+      color: var(--google-blue);
+      padding: 0.1rem 0.4rem;
+      border-radius: 10px;
+      letter-spacing: 0.03em;
+    }
 
     .draft-text {
+      font-size: 0.875rem;
+      line-height: 1.65;
+      color: #1a5e35;
       white-space: pre-wrap;
       word-break: break-word;
-      color: #166534;
+      flex: 1;
     }
-    .no-draft { color: var(--muted); font-style: italic; }
+
+    .no-draft {
+      font-size: 0.875rem;
+      color: var(--muted);
+      font-style: italic;
+    }
 
     .copy-btn {
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
-      margin-top: 0.625rem;
+      margin-top: 0.75rem;
+      align-self: flex-start;
       padding: 0.4rem 0.875rem;
-      background: var(--accent);
+      background: var(--google-blue);
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 4px;
       font-size: 0.8rem;
-      font-weight: 600;
+      font-weight: 500;
       cursor: pointer;
       transition: background 0.15s;
     }
-    .copy-btn:hover:not(:disabled) { background: var(--accent-dark); }
-    .copy-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .copy-btn:hover:not(:disabled) { background: #1557b0; }
+    .copy-btn:disabled { background: #dadce0; color: #80868b; cursor: not-allowed; }
     .copy-btn.copied { background: var(--ok); }
 
     /* ── Vietnamese summary (collapsible) ── */
     .viet-section {
       border-top: 1px solid var(--border);
-      padding: 0;
     }
 
     .viet-toggle {
       width: 100%;
-      padding: 0.6rem 1rem;
+      padding: 0.55rem 1.25rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
       background: none;
       border: none;
       cursor: pointer;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: var(--muted);
-      font-weight: 600;
+      font-weight: 500;
       text-align: left;
       transition: background 0.1s;
     }
-    .viet-toggle:hover { background: #f8fafc; }
+    .viet-toggle:hover { background: #f8f9fa; }
     .viet-toggle .arrow { transition: transform 0.2s; }
     .viet-toggle.open .arrow { transform: rotate(180deg); }
 
     .viet-content {
       display: none;
-      padding: 0 1rem 0.875rem;
-      font-size: 0.85rem;
+      padding: 0 1.25rem 0.875rem;
+      font-size: 0.84rem;
       color: var(--text);
-      line-height: 1.6;
+      line-height: 1.65;
       white-space: pre-wrap;
+      background: #fafafa;
     }
     .viet-content.open { display: block; }
+
+    /* ── Salon bar ── */
+    #salon-bar-wrapper {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    #salon-bar-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1.5rem;
+      min-height: 40px;
+    }
+
+    .salon-bar-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    #salon-bar-chips {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex: 1;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    #salon-bar-chips::-webkit-scrollbar { display: none; }
+
+    .salon-bar-empty {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    #salon-bar-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.3rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--card);
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    #salon-bar-toggle:hover { border-color: var(--google-blue); color: var(--google-blue); background: #e8f0fe; }
+    #salon-bar-toggle .toggle-arrow { transition: transform 0.2s; display: inline-block; }
+    #salon-bar-toggle.open .toggle-arrow { transform: rotate(180deg); }
+
+    /* Collapsible search panel */
+    #salon-search-panel {
+      display: none;
+      border-top: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      background: #fafafa;
+    }
+    #salon-search-panel.open { display: block; }
+
+    #salon-search-input {
+      width: 100%;
+      max-width: 360px;
+      padding: 0.5rem 0.875rem 0.5rem 2.25rem;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: var(--text);
+      background: var(--card);
+      outline: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235f6368' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: 0.75rem center;
+    }
+    #salon-search-input:focus { border-color: var(--google-blue); }
+
+    #salon-search-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.625rem;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+
+    /* Shared chip styles */
+    .salon-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      user-select: none;
+    }
+    .salon-chip:hover { border-color: var(--google-blue); color: var(--google-blue); background: #e8f0fe; }
+    .salon-chip.active { background: var(--google-blue); color: white; border-color: var(--google-blue); }
+    .salon-chip.fav { border-color: #fcd34d; background: #fffbeb; color: #92400e; }
+    .salon-chip.fav:hover { border-color: #f59e0b; background: #fef3c7; }
+    .salon-chip.fav.active { background: var(--google-blue); color: white; border-color: var(--google-blue); }
+
+    .salon-chip .chip-star {
+      font-size: 0.85rem;
+      cursor: pointer;
+      opacity: 0.55;
+      transition: opacity 0.15s, transform 0.15s;
+      line-height: 1;
+    }
+    .salon-chip .chip-star:hover { opacity: 1; transform: scale(1.3); }
+    .salon-chip.fav .chip-star { opacity: 1; color: #f59e0b; }
+    .salon-chip.active .chip-star { color: #fde68a; opacity: 1; }
+
+    /* In the search panel, chips show as "add/remove fav" with star on right */
+    .search-chip { }
+    .search-chip.fav { border-color: #fcd34d; background: #fffbeb; }
+
+    /* Favourites filter in the filter bar */
+    #filter-favs {
+      background: var(--card);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    #filter-favs:hover { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+    #filter-favs.active { background: #fffbeb; color: #b45309; border-color: #fcd34d; font-weight: 600; }
 
     /* ── Pagination ── */
     #pagination {
@@ -341,40 +656,45 @@
     }
 
     #load-more {
-      padding: 0.65rem 2rem;
+      padding: 0.6rem 2rem;
       background: var(--card);
-      color: var(--accent);
-      border: 2px solid var(--accent);
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 700;
+      color: var(--google-blue);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 0.875rem;
+      font-weight: 500;
       cursor: pointer;
-      transition: background 0.15s, color 0.15s;
+      transition: background 0.15s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
     }
-    #load-more:hover { background: var(--accent); color: white; }
+    #load-more:hover { background: #f8f9fa; }
     #load-more:disabled { opacity: 0.5; cursor: not-allowed; }
     #load-more.hidden { display: none; }
 
     /* ── Responsive ── */
     @media (max-width: 768px) {
-      .card-body { grid-template-columns: 1fr; }
-      .card-review { border-right: none; border-bottom: 1px solid var(--border); }
+      .card-columns { grid-template-columns: 1fr; }
+      .review-col { border-right: none; border-bottom: 1px solid var(--border); }
       #stats-bar { overflow-x: auto; flex-wrap: nowrap; }
-      .stat { min-width: 100px; padding: 0.875rem 1rem; }
+      .stat { min-width: 100px; padding: 0.75rem 1rem; }
       header h1 { font-size: 0.95rem; }
       #review-list { padding: 1rem 0.75rem; }
-      #filters { padding: 0.75rem; }
+      #filters { padding: 0.625rem 0.75rem; }
+      #user-email { display: none; }
     }
   </style>
 </head>
 <body>
 
   <header>
-    <div>
+    <div class="header-left">
+      <div class="header-logo">M</div>
       <h1>Mi Nail &mdash; Review Dashboard</h1>
-      <div class="user-info" id="user-email"></div>
     </div>
-    <button id="logout-btn">Logout</button>
+    <div class="header-right">
+      <span id="user-email"></span>
+      <button id="logout-btn">Sign out</button>
+    </div>
   </header>
 
   <div id="stats-bar">
@@ -396,6 +716,25 @@
     </div>
   </div>
 
+  <div id="salon-bar-wrapper">
+    <div id="salon-bar-header">
+      <span class="salon-bar-label">Favourites</span>
+      <div id="salon-bar-chips">
+        <!-- fav chips injected here -->
+      </div>
+      <button id="salon-bar-toggle" title="Browse & manage salons">
+        + Manage salons
+        <span class="toggle-arrow">▾</span>
+      </button>
+    </div>
+    <div id="salon-search-panel">
+      <input type="text" id="salon-search-input" placeholder="Search salons…" autocomplete="off" />
+      <div id="salon-search-list">
+        <!-- all salon chips shown here -->
+      </div>
+    </div>
+  </div>
+
   <div id="filters">
     <select id="filter-rating" title="Filter by rating">
       <option value="">All Ratings</option>
@@ -412,6 +751,10 @@
       <option value="false">No Risk Flag</option>
     </select>
 
+    <select id="filter-salon" title="Filter by salon">
+      <option value="">All Salons</option>
+    </select>
+
     <select id="filter-category" title="Filter by category">
       <option value="">All Categories</option>
     </select>
@@ -424,6 +767,8 @@
 
     <input type="text" id="filter-search" placeholder="Search author or review text…" />
 
+    <button class="filter-btn" id="filter-favs" title="Show favourite salons only">☆ Fav Salons</button>
+
     <button class="filter-btn" id="apply-filters">Apply</button>
     <button class="filter-btn" id="clear-filters">Clear</button>
 
@@ -435,7 +780,13 @@
   </div>
 
   <div id="pagination">
-    <button id="load-more" class="hidden">Load More</button>
+    <button id="load-more" class="hidden">Load more</button>
+  </div>
+
+  <!-- Lightbox for review photos -->
+  <div id="lightbox">
+    <button id="lightbox-close" title="Close">&times;</button>
+    <img id="lightbox-img" src="" alt="" referrerpolicy="no-referrer" />
   </div>
 
   <script>
@@ -450,12 +801,10 @@
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
     // ── Auth check ──────────────────────────────────────────────────────────
-    // Wait for Supabase to process any hash tokens (magic link / OAuth callback)
     const getSession = () => new Promise(resolve => {
       db.auth.onAuthStateChange((event, session) => {
         resolve(session);
       });
-      // Also check existing session as fallback
       db.auth.getSession().then(({ data }) => {
         if (data.session) resolve(data.session);
       });
@@ -484,12 +833,44 @@
     let currentOffset = 0;
     let currentFilters = {};
     let hasMore = false;
+    let showFavsOnly = false;
+
+    // ── Salon Favourites (localStorage) ──────────────────────────────────
+    const FAV_KEY = 'dashboard_fav_salons';
+    function getFavSalons() {
+      try { return new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); }
+      catch { return new Set(); }
+    }
+    function saveFavSalons(set) {
+      localStorage.setItem(FAV_KEY, JSON.stringify([...set]));
+    }
+    function toggleFavSalon(name) {
+      const favs = getFavSalons();
+      if (favs.has(name)) favs.delete(name); else favs.add(name);
+      saveFavSalons(favs);
+      return favs.has(name);
+    }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
-    function stars(rating) {
-      const full  = Math.round(rating || 0);
-      const empty = 5 - full;
-      return '★'.repeat(full) + '☆'.repeat(empty);
+    // Avatar background colours based on first letter
+    const AVATAR_COLORS = [
+      '#1a73e8','#ea4335','#34a853','#fbbc04','#9c27b0',
+      '#00bcd4','#ff5722','#607d8b','#e91e63','#4caf50'
+    ];
+    function avatarColor(name) {
+      const ch = (name || 'A').charCodeAt(0);
+      return AVATAR_COLORS[ch % AVATAR_COLORS.length];
+    }
+    function avatarInitial(name) {
+      return (name || '?').charAt(0).toUpperCase();
+    }
+
+    // Google-style SVG stars
+    function starsSVG(rating) {
+      const full = Math.round(rating || 0);
+      return Array.from({ length: 5 }, (_, i) =>
+        `<svg class="star-svg" viewBox="0 0 24 24"><polygon class="${i < full ? 'star-full' : 'star-empty'}" points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>`
+      ).join('');
     }
 
     function formatDate(ts) {
@@ -511,28 +892,28 @@
     }
 
     // ── Stats ────────────────────────────────────────────────────────────────
-    async function fetchStats() {
-      const { data, error } = await db
-        .from('reviews')
-        .select('rating, sentiment_score, risk_flag');
+    async function fetchStats(salon = '') {
+      let q = db.from('reviews').select('rating, sentiment_score, risk_flag');
+      if (salon) q = q.eq('salon_name', salon);
 
+      const { data, error } = await q;
       if (error || !data) return;
 
-      const total    = data.length;
-      const avgRating    = total ? (data.reduce((s, r) => s + (r.rating || 0), 0) / total).toFixed(1) : '—';
+      const total         = data.length;
+      const avgRating     = total ? (data.reduce((s, r) => s + (r.rating || 0), 0) / total).toFixed(1) : '—';
       const withSentiment = data.filter(r => r.sentiment_score != null);
-      const avgSentiment = withSentiment.length
+      const avgSentiment  = withSentiment.length
         ? (withSentiment.reduce((s, r) => s + r.sentiment_score, 0) / withSentiment.length).toFixed(1)
         : '—';
       const riskCount = data.filter(r => r.risk_flag).length;
 
-      document.getElementById('stat-total').textContent        = total;
-      document.getElementById('stat-avg-rating').textContent   = avgRating !== '—' ? avgRating + ' / 5' : '—';
+      document.getElementById('stat-total').textContent         = total;
+      document.getElementById('stat-avg-rating').textContent    = avgRating !== '—' ? avgRating + ' / 5' : '—';
       document.getElementById('stat-avg-sentiment').textContent = avgSentiment !== '—' ? avgSentiment + ' / 10' : '—';
-      document.getElementById('stat-risk-count').textContent   = riskCount;
+      document.getElementById('stat-risk-count').textContent    = riskCount;
     }
 
-    // ── Populate category dropdown ───────────────────────────────────────────
+    // ── Populate category + salon dropdowns ─────────────────────────────────
     async function loadCategories() {
       const { data } = await db.from('reviews').select('category');
       if (!data) return;
@@ -545,6 +926,170 @@
       });
     }
 
+    // All salon names loaded once, used by both the fav bar and search panel
+    let allSalonNames = [];
+
+    async function loadSalons() {
+      // Fetch all pages to get every distinct salon_name
+      let allSalons = new Set();
+      let from = 0;
+      const BATCH = 1000;
+      while (true) {
+        const { data } = await db.from('reviews').select('salon_name').range(from, from + BATCH - 1);
+        if (!data || data.length === 0) break;
+        data.forEach(r => { if (r.salon_name) allSalons.add(r.salon_name); });
+        if (data.length < BATCH) break;
+        from += BATCH;
+      }
+
+      allSalonNames = [...allSalons].sort();
+
+      // Populate the filter dropdown
+      const sel = document.getElementById('filter-salon');
+      allSalonNames.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s; opt.textContent = s;
+        sel.appendChild(opt);
+      });
+
+      // Render both areas
+      renderFavChipsBar();
+      renderSearchList('');
+    }
+
+    // ── Render the fav chips bar (top strip, only fav salons) ────────────────
+    function renderFavChipsBar() {
+      const container = document.getElementById('salon-bar-chips');
+      container.innerHTML = '';
+      const favs = getFavSalons();
+      const favSalons = allSalonNames.filter(n => favs.has(n));
+
+      if (favSalons.length === 0) {
+        container.innerHTML = '<span class="salon-bar-empty">No favourites yet — click "+ Manage salons" to add some</span>';
+        return;
+      }
+
+      favSalons.forEach(name => {
+        const chip = makeTopChip(name);
+        container.appendChild(chip);
+      });
+    }
+
+    // Creates a chip for the top fav bar
+    function makeTopChip(name) {
+      const chip = document.createElement('div');
+      chip.className = 'salon-chip fav';
+      chip.dataset.salon = name;
+      chip.innerHTML = `<span class="chip-name">${escape(name)}</span><span class="chip-star" title="Remove from favourites">★</span>`;
+
+      chip.querySelector('.chip-name').addEventListener('click', () => {
+        const isActive = chip.classList.contains('active');
+        // Deactivate all top chips
+        document.querySelectorAll('#salon-bar-chips .salon-chip').forEach(c => c.classList.remove('active'));
+        if (isActive) {
+          document.getElementById('filter-salon').value = '';
+          currentFilters.salon = '';
+        } else {
+          chip.classList.add('active');
+          document.getElementById('filter-salon').value = name;
+          currentFilters.salon = name;
+        }
+        loadReviews(true);
+      });
+
+      chip.querySelector('.chip-star').addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFavSalon(name);
+        // Deactivate salon filter if this was selected
+        if (currentFilters.salon === name) {
+          currentFilters.salon = '';
+          document.getElementById('filter-salon').value = '';
+          loadReviews(true);
+        }
+        renderFavChipsBar();
+        renderSearchList(document.getElementById('salon-search-input').value);
+        if (showFavsOnly) loadReviews(true);
+      });
+
+      return chip;
+    }
+
+    // ── Render the search panel list ─────────────────────────────────────────
+    function renderSearchList(query) {
+      const container = document.getElementById('salon-search-list');
+      container.innerHTML = '';
+      const favs = getFavSalons();
+      const q = query.toLowerCase().trim();
+      const filtered = q
+        ? allSalonNames.filter(n => n.toLowerCase().includes(q))
+        : allSalonNames;
+
+      // Fav salons first, then rest — alphabetical within each group
+      const sorted = [...filtered].sort((a, b) => {
+        const af = favs.has(a), bf = favs.has(b);
+        if (af && !bf) return -1;
+        if (!af && bf) return 1;
+        return a.localeCompare(b);
+      });
+
+      if (sorted.length === 0) {
+        container.innerHTML = '<span style="font-size:0.82rem;color:var(--muted);font-style:italic;">No salons found</span>';
+        return;
+      }
+
+      sorted.forEach(name => {
+        const isFav = favs.has(name);
+        const chip = document.createElement('div');
+        chip.className = 'salon-chip search-chip' + (isFav ? ' fav' : '');
+        chip.dataset.salon = name;
+        chip.innerHTML = `<span class="chip-name">${escape(name)}</span><span class="chip-star" title="${isFav ? 'Remove from favourites' : 'Add to favourites'}">${isFav ? '★' : '☆'}</span>`;
+
+        // Click chip name → filter to this salon and select it in top bar
+        chip.querySelector('.chip-name').addEventListener('click', () => {
+          document.getElementById('filter-salon').value = name;
+          currentFilters.salon = name;
+          // Sync top bar active state
+          document.querySelectorAll('#salon-bar-chips .salon-chip').forEach(c => {
+            c.classList.toggle('active', c.dataset.salon === name);
+          });
+          loadReviews(true);
+        });
+
+        // Click star → toggle fav
+        chip.querySelector('.chip-star').addEventListener('click', (e) => {
+          e.stopPropagation();
+          const nowFav = toggleFavSalon(name);
+          chip.classList.toggle('fav', nowFav);
+          chip.querySelector('.chip-star').textContent = nowFav ? '★' : '☆';
+          chip.querySelector('.chip-star').title = nowFav ? 'Remove from favourites' : 'Add to favourites';
+          // Re-sort so favs float to top
+          renderSearchList(document.getElementById('salon-search-input').value);
+          renderFavChipsBar();
+          if (showFavsOnly) loadReviews(true);
+        });
+
+        container.appendChild(chip);
+      });
+    }
+
+    // ── Salon bar toggle & search ─────────────────────────────────────────────
+    document.getElementById('salon-bar-toggle').addEventListener('click', () => {
+      const panel  = document.getElementById('salon-search-panel');
+      const toggle = document.getElementById('salon-bar-toggle');
+      const isOpen = panel.classList.toggle('open');
+      toggle.classList.toggle('open', isOpen);
+      toggle.innerHTML = isOpen
+        ? `✕ Close <span class="toggle-arrow open">▾</span>`
+        : `+ Manage salons <span class="toggle-arrow">▾</span>`;
+      if (isOpen) {
+        setTimeout(() => document.getElementById('salon-search-input').focus(), 50);
+      }
+    });
+
+    document.getElementById('salon-search-input').addEventListener('input', (e) => {
+      renderSearchList(e.target.value);
+    });
+
     // ── Fetch reviews ────────────────────────────────────────────────────────
     async function fetchReviews(filters, offset) {
       let q = db.from('reviews')
@@ -552,7 +1097,8 @@
           review_id, salon_name, author_name, rating,
           original_text, review_date, sentiment_score,
           risk_flag, category, vietnamese_summary,
-          draft_response, status, profile_image_url, review_url
+          draft_response, status, profile_image_url, review_url,
+          raw_data
         `)
         .order('review_date', { ascending: false })
         .range(offset, offset + PAGE_SIZE - 1);
@@ -562,6 +1108,7 @@
                             q = q.eq('risk_flag', filters.risk === 'true');
       if (filters.category) q = q.eq('category', filters.category);
       if (filters.status)   q = q.eq('status', filters.status);
+      if (filters.salon)    q = q.eq('salon_name', filters.salon);
       if (filters.search) {
         const term = filters.search.replace(/'/g, "''");
         q = q.or(`author_name.ilike.%${term}%,original_text.ilike.%${term}%`);
@@ -575,44 +1122,70 @@
     // ── Render card ──────────────────────────────────────────────────────────
     function renderCard(r) {
       const card = document.createElement('div');
-      card.className = 'card' + (r.risk_flag ? ' risk-flagged' : '') + (r.status === 'ANALYSIS_FAILED' ? ' failed' : '');
+      card.className = 'card' + (r.risk_flag ? ' risk-flagged' : '');
 
-      const avatar = r.profile_image_url
-        ? `<img class="avatar" src="${escape(r.profile_image_url)}" alt="" onerror="this.style.display='none'" />`
-        : '';
+      // Avatar: real photo or coloured initial
+      // Replace s64 with s96 for a sharper image at 40px display size.
+      // referrerpolicy="no-referrer" is required — Google's CDN rejects requests
+      // that include a Referer header from a non-Google origin.
+      // Do NOT add crossorigin="anonymous" — Google doesn't send CORS headers,
+      // which would make the browser block the image entirely.
+      const imgSrc = (r.profile_image_url || '').replace(/=s\d+/, '=s96');
+      const avatarHTML = r.profile_image_url
+        ? `<img class="avatar-img" src="${escape(imgSrc)}" alt=""
+               referrerpolicy="no-referrer"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+           />
+           <div class="avatar-initial" style="display:none;background:${avatarColor(r.author_name)}">${avatarInitial(r.author_name)}</div>`
+        : `<div class="avatar-initial" style="background:${avatarColor(r.author_name)}">${avatarInitial(r.author_name)}</div>`;
 
-      const sentiScore = r.sentiment_score;
-      const sentiLabel = sentiScore != null ? `${sentiScore}/10` : null;
-      const sentiPill  = sentiLabel
-        ? `<span class="badge sentiment-pill ${sentimentClass(sentiScore)}">${sentiLabel}</span>`
-        : '';
-
-      const riskBadge     = r.risk_flag ? `<span class="badge badge-risk">⚠ RISK</span>` : '';
+      // Badges
+      const riskBadge     = r.risk_flag ? `<span class="badge badge-risk">⚠ Risk</span>` : '';
       const categoryBadge = r.category  ? `<span class="badge badge-category">${escape(r.category)}</span>` : '';
       const failedBadge   = r.status === 'ANALYSIS_FAILED' ? `<span class="badge badge-failed">Analysis failed</span>` : '';
-
-      const reviewText = r.original_text
-        ? `<div class="review-text">${escape(r.original_text)}</div>`
-        : `<div class="no-text">Rating only — no text provided</div>`;
-
-      const hasDraft   = r.draft_response && r.draft_response.trim();
-      const draftText  = hasDraft
-        ? `<div class="draft-text">${escape(r.draft_response)}</div>`
-        : `<div class="no-draft">Draft unavailable</div>`;
-
-      const copyBtn = `<button class="copy-btn" ${hasDraft ? '' : 'disabled'} data-draft="${escape(r.draft_response || '')}">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        Copy Draft
-      </button>`;
-
-      const reviewLink = r.review_url
-        ? `<a href="${escape(r.review_url)}" target="_blank" rel="noopener" style="font-size:0.75rem;color:var(--accent);text-decoration:none;margin-left:0.5rem;">View on Google ↗</a>`
+      const sentiScore    = r.sentiment_score;
+      const sentiPill     = sentiScore != null
+        ? `<span class="sentiment-pill ${sentimentClass(sentiScore)}">Sentiment ${sentiScore}/10</span>`
         : '';
 
+      // Review text
+      const reviewBodyHTML = r.original_text
+        ? `<div class="review-body-text">${escape(r.original_text)}</div>`
+        : `<div class="no-review-text">Rating only — no written review</div>`;
+
+      // Review photos from raw_data.images
+      const reviewImages = (r.raw_data?.images || [])
+        .map(img => img.image_url).filter(Boolean);
+      const photosHTML = reviewImages.length
+        ? `<div class="review-photos">${
+            reviewImages.map(url =>
+              `<img class="review-photo" src="${escape(url)}" alt="Review photo"
+                    referrerpolicy="no-referrer"
+                    onerror="this.style.display='none'"
+                    onclick="openLightbox('${escape(url)}')" />`
+            ).join('')
+          }</div>`
+        : '';
+
+      // Google link
+      const googleLink = r.review_url
+        ? `<a class="google-link" href="${escape(r.review_url)}" target="_blank" rel="noopener">
+             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+             View on Google
+           </a>`
+        : '';
+
+      // Draft
+      const hasDraft  = r.draft_response && r.draft_response.trim();
+      const draftHTML = hasDraft
+        ? `<div class="draft-text">${escape(r.draft_response)}</div>`
+        : `<div class="no-draft">No draft available yet</div>`;
+
+      // Vietnamese section
       const vietSection = r.vietnamese_summary
         ? `<div class="viet-section">
             <button class="viet-toggle" onclick="toggleViet(this)">
-              Vietnamese Summary for Owner
+              🇻🇳 Vietnamese summary for owner
               <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
             <div class="viet-content">${escape(r.vietnamese_summary)}</div>
@@ -620,30 +1193,39 @@
         : '';
 
       card.innerHTML = `
-        <div class="card-header">
-          <div class="card-author">
-            ${avatar}
-            <div>
-              <div class="author-name">${escape(r.author_name || 'Anonymous')}</div>
-              <div class="review-date">
-                <span class="stars">${stars(r.rating)}</span>
-                &nbsp;${formatDate(r.review_date)}${reviewLink}
+        <div class="card-columns">
+          <!-- Left: Google-style review -->
+          <div class="review-col">
+            <div class="reviewer-row">
+              <div class="avatar-wrap">${avatarHTML}</div>
+              <div class="reviewer-info">
+                <div class="reviewer-name">${escape(r.author_name || 'Anonymous')}</div>
+                <div class="reviewer-meta">
+                  <div class="google-stars">${starsSVG(r.rating)}</div>
+                  <span class="review-date-text">${formatDate(r.review_date)}</span>
+                  ${r.salon_name ? `<span style="font-size:0.75rem;color:var(--muted);">· ${escape(r.salon_name)}</span>` : ''}
+                </div>
               </div>
             </div>
+            ${reviewBodyHTML}
+            ${photosHTML}
+            <div class="review-footer">
+              ${googleLink}
+              ${riskBadge}${failedBadge}${categoryBadge}${sentiPill}
+            </div>
           </div>
-          <div class="card-badges">
-            ${riskBadge}${failedBadge}${categoryBadge}${sentiPill}
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="card-review">
-            <div class="col-label">Customer Review</div>
-            ${reviewText}
-          </div>
-          <div class="card-draft">
-            <div class="col-label">AI Draft Response</div>
-            ${draftText}
-            ${copyBtn}
+
+          <!-- Right: AI Draft -->
+          <div class="draft-col">
+            <div class="draft-col-header">
+              <span class="draft-label">AI Draft Response</span>
+              <span class="ai-badge">AI</span>
+            </div>
+            ${draftHTML}
+            <button class="copy-btn" ${hasDraft ? '' : 'disabled'} data-draft="${escape(r.draft_response || '')}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy draft
+            </button>
           </div>
         </div>
         ${vietSection}
@@ -660,27 +1242,20 @@
 
     // ── Copy draft ───────────────────────────────────────────────────────────
     function copyDraft(text, btn) {
+      const origHTML = btn.innerHTML;
       navigator.clipboard.writeText(text).then(() => {
-        const orig = btn.innerHTML;
-        btn.textContent = 'Copied!';
+        btn.textContent = '✓ Copied!';
         btn.classList.add('copied');
-        setTimeout(() => {
-          btn.innerHTML = orig;
-          btn.classList.remove('copied');
-        }, 2000);
+        setTimeout(() => { btn.innerHTML = origHTML; btn.classList.remove('copied'); }, 2000);
       }).catch(() => {
-        // Fallback for older browsers
         const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
+        ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(ta); ta.select();
         document.execCommand('copy');
         document.body.removeChild(ta);
-        btn.textContent = 'Copied!';
+        btn.textContent = '✓ Copied!';
         btn.classList.add('copied');
-        setTimeout(() => { btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Draft`; btn.classList.remove('copied'); }, 2000);
+        setTimeout(() => { btn.innerHTML = origHTML; btn.classList.remove('copied'); }, 2000);
       });
     }
 
@@ -692,34 +1267,40 @@
         document.getElementById('load-more').classList.add('hidden');
       }
 
+      // Refresh stats to match current salon filter
+      if (reset) fetchStats(currentFilters.salon || '');
+
       const data = await fetchReviews(currentFilters, currentOffset);
       const list = document.getElementById('review-list');
 
       if (reset) list.innerHTML = '';
 
-      if (data.length === 0 && currentOffset === 0) {
-        list.innerHTML = '<div class="state-msg">No reviews found matching your filters.</div>';
+      const favSalons = getFavSalons();
+      const toShow = showFavsOnly ? data.filter(r => favSalons.has(r.salon_name)) : data;
+      if (toShow.length === 0 && currentOffset === 0) {
+        list.innerHTML = showFavsOnly
+          ? '<div class="state-msg">No favourite salons yet — click ☆ on a salon chip above to favourite it.</div>'
+          : '<div class="state-msg">No reviews found matching your filters.</div>';
         document.getElementById('load-more').classList.add('hidden');
         document.getElementById('filter-count').textContent = '';
         return;
       }
-
-      data.forEach(r => list.appendChild(renderCard(r)));
+      toShow.forEach(r => list.appendChild(renderCard(r)));
 
       hasMore = data.length === PAGE_SIZE;
       const loadMoreBtn = document.getElementById('load-more');
       if (hasMore) {
         loadMoreBtn.classList.remove('hidden');
         loadMoreBtn.disabled = false;
-        loadMoreBtn.textContent = 'Load More';
+        loadMoreBtn.textContent = 'Load more';
       } else {
         loadMoreBtn.classList.add('hidden');
       }
 
-      const total = document.getElementById('stat-total').textContent;
+      const total   = document.getElementById('stat-total').textContent;
       const showing = currentOffset + data.length;
       document.getElementById('filter-count').textContent =
-        hasMore ? `Showing ${showing} of ${total}` : `Showing ${showing}`;
+        hasMore ? `Showing ${showing} of ${total}` : `Showing all ${showing}`;
     }
 
     // ── Filters ──────────────────────────────────────────────────────────────
@@ -727,6 +1308,7 @@
       return {
         rating:   document.getElementById('filter-rating').value,
         risk:     document.getElementById('filter-risk').value,
+        salon:    document.getElementById('filter-salon').value,
         category: document.getElementById('filter-category').value,
         status:   document.getElementById('filter-status').value,
         search:   document.getElementById('filter-search').value.trim(),
@@ -739,12 +1321,22 @@
     };
 
     document.getElementById('clear-filters').onclick = () => {
-      document.getElementById('filter-rating').value   = '';
-      document.getElementById('filter-risk').value     = '';
-      document.getElementById('filter-category').value = '';
-      document.getElementById('filter-status').value   = '';
-      document.getElementById('filter-search').value   = '';
+      ['filter-rating','filter-risk','filter-salon','filter-category','filter-status','filter-search']
+        .forEach(id => document.getElementById(id).value = '');
       currentFilters = {};
+      showFavsOnly = false;
+      document.getElementById('filter-favs').classList.remove('active');
+      document.getElementById('filter-favs').textContent = '☆ Fav Salons';
+      document.querySelectorAll('#salon-bar-chips .salon-chip').forEach(c => c.classList.remove('active'));
+      loadReviews(true);
+    };
+
+    // ── Favourites toggle ─────────────────────────────────────────────────
+    document.getElementById('filter-favs').onclick = () => {
+      showFavsOnly = !showFavsOnly;
+      const btn = document.getElementById('filter-favs');
+      btn.classList.toggle('active', showFavsOnly);
+      btn.textContent = showFavsOnly ? '★ Fav Salons' : '☆ Fav Salons';
       loadReviews(true);
     };
 
@@ -767,10 +1359,32 @@
       btn.nextElementSibling.classList.toggle('open');
     };
 
+    // ── Lightbox ─────────────────────────────────────────────────────────────
+    window.openLightbox = (url) => {
+      document.getElementById('lightbox-img').src = url;
+      document.getElementById('lightbox').classList.add('open');
+    };
+    document.getElementById('lightbox').addEventListener('click', (e) => {
+      if (e.target !== document.getElementById('lightbox-img')) {
+        document.getElementById('lightbox').classList.remove('open');
+        document.getElementById('lightbox-img').src = '';
+      }
+    });
+    document.getElementById('lightbox-close').addEventListener('click', () => {
+      document.getElementById('lightbox').classList.remove('open');
+      document.getElementById('lightbox-img').src = '';
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.getElementById('lightbox').classList.remove('open');
+        document.getElementById('lightbox-img').src = '';
+      }
+    });
+
     // ── Init ─────────────────────────────────────────────────────────────────
-    fetchStats();
     loadCategories();
-    loadReviews(true);
+    loadSalons();
+    loadReviews(true); // fetchStats is called inside loadReviews on reset
 
   })();
   </script>
