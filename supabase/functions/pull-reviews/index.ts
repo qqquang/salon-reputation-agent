@@ -210,7 +210,7 @@ Deno.serve(async (req) => {
         : (review.rating as number) || 0
       const text = (review.review_text as string) || ''
       const author = (review.profile_name as string) || 'Anonymous'
-      const finalSalonName = salonName || (body.salonName as string) || 'Mi Nail'
+      const finalSalonName = salonName || (body.salonName as string) || 'Mi Nail Belleville'
 
       try {
         // Scout
