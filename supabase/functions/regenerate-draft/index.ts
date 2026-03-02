@@ -71,11 +71,12 @@ ${context || 'None'}
 
 Guidelines:
 1. Plain text, one paragraph, max 3 sentences, max 350 characters.
-2. Voice: playful, warm, caring, and neighborhood-friendly.
+2. Voice: Write as a busy owner quickly replying between clients — casual, slightly unpolished, like a real person typing on their phone. Playful and warm. Occasional minor grammar quirks are fine. Avoid spa-marketing vocabulary.
 3. Do NOT start with "Thank you" or the author's name.
 4. Do NOT use em-dashes (—), bullet points, or formal language.
 5. End with a warm invitation to return.
-6. Output ONLY the response text, nothing else.`
+6. Output ONLY the response text, nothing else.
+7. Never use these words or phrases: pamper, treat yourself, indulge, glowing review, detail-focused care.`
 
     // ── Call OpenAI ───────────────────────────────────────────────────────────
     const oaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
