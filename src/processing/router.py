@@ -104,7 +104,7 @@ class IntelligenceRouter:
         opening = opening_styles[seed % len(opening_styles)]
         closing = closing_styles[(seed // 7) % len(closing_styles)]
         closing_options = [
-            "We are excited to pamper you again soon.",
+            "Can't wait to see you again soon!",
             "Thanks for trusting us with your nails.",
             f"We look forward to your next set at {salon_name}.",
             "See you soon for your next nail refresh.",
