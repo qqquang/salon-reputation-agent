@@ -133,7 +133,15 @@ class SimpleIngestionAgent:
             if salon_name in ["Unknown Salon", "My Salon", "N/A"] or not salon_name:
                 print(f"Auto-detected Salon Name: {fetched_name}")
                 salon_name = fetched_name
-        
+
+        # Auto-rename: if Google changed the business name, update all old DB rows
+        if fetched_name and not settings.DRY_RUN:
+            existing_name = db.get_salon_name(cid)
+            if existing_name and existing_name != fetched_name:
+                print(f"  🔄 Name change detected for CID {cid}: '{existing_name}' → '{fetched_name}'")
+                db.update_salon_name_by_cid(cid, fetched_name)
+            salon_name = fetched_name
+
         # Fallback: If still unknown, check DB for existing name for this CID
         if salon_name in ["Unknown Salon", "My Salon", "N/A"] or not salon_name:
              existing_name = db.get_salon_name(cid)
