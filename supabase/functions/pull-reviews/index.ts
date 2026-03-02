@@ -177,6 +177,25 @@ Deno.serve(async (req) => {
     // Fetch reviews from DataForSEO
     const { reviews, salonName } = await fetchReviewsFromDFS(cid, dfsLogin, dfsPassword, 100)
 
+    // Auto-rename: if Google changed the business name, update all old DB rows for this CID
+    if (salonName) {
+      const { data: existingRow } = await db
+        .from('reviews')
+        .select('salon_name')
+        .eq('cid', cid)
+        .not('salon_name', 'in', '("Unknown Salon","N/A")')
+        .limit(1)
+        .maybeSingle()
+      const existingName = existingRow?.salon_name
+      if (existingName && existingName !== salonName) {
+        await db
+          .from('reviews')
+          .update({ salon_name: salonName, updated_at: new Date().toISOString() })
+          .eq('cid', cid)
+          .neq('salon_name', salonName)
+      }
+    }
+
     // Fetch recent drafts for anti-repetition context
     const { data: recentRows } = await db
       .from('reviews')
