@@ -14,7 +14,7 @@ const BRAND_CONTEXT = `Identity: Mi Nail Belleville is a modern neighborhood nai
 Tone keywords: playful, warm, caring, polished, confident
 Differentiators: detail-oriented shaping and prep, clean and comfortable environment, friendly, no-rush customer care
 Core services: gel manicure, acrylic sets, pedicure, nail art
-Avoid phrases: We are sorry for any inconvenience, Your satisfaction is our top priority, glowing review, detail-focused care, Mi NAIL`
+Avoid phrases: We are sorry for any inconvenience, Your satisfaction is our top priority, glowing review, detail-focused care, Mi NAIL, pamper, treat yourself, indulge`
 
 const SCOUT_PROMPT = (text: string, rating: number) =>
   `You are a salon review triage analyst.
@@ -60,7 +60,7 @@ ${BRAND_CONTEXT}
 
 Guidelines:
 1. Keep it natural and human: plain text, one paragraph, max 3 sentences, max 350 characters.
-2. Voice: playful, warm, caring, and neighborhood-friendly. Prefer everyday words over polished marketing terms.
+2. Voice: Write as a busy owner quickly replying between clients — casual, slightly unpolished, like a real person typing on their phone. Playful and warm. Occasional minor grammar quirks are fine. Avoid spa-marketing vocabulary.
 3. Sound like a real owner: slightly conversational rhythm is good.
 4. Safety rules (strict): no personal/private details, no incentives, no asking to remove/edit reviews.
 5. If review text is empty, write a simple thank-you only (1-2 short sentences) and do not invent details.
