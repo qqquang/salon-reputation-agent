@@ -15,6 +15,24 @@ from src.processing.router import IntelligenceRouter
 # Configuration
 CHECK_INTERVAL = 3600  # 1 hour
 
+# Placeholder names that mean "no real salon name available"
+UNKNOWN_SALON_NAMES = {"Unknown Salon", "My Salon", "N/A"}
+
+
+def _extract_rating(rating_raw) -> int:
+    """Normalize rating from DataForSEO (scalar or nested dict) to int 1-5."""
+    if isinstance(rating_raw, dict):
+        val = rating_raw.get('value', 3)
+    elif rating_raw is not None:
+        val = rating_raw
+    else:
+        return 3
+    try:
+        val = int(float(val))
+        return max(1, min(5, val))  # clamp to valid range 1-5
+    except (TypeError, ValueError):
+        return 3
+
 class SimpleIngestionAgent:
     def __init__(self):
         print("Initializing Simple Ingestion Agent...")
@@ -130,7 +148,7 @@ class SimpleIngestionAgent:
         
         # Update name if available and we are using default/fallback
         if fetched_name:
-            if salon_name in ["Unknown Salon", "My Salon", "N/A"] or not salon_name:
+            if not salon_name or salon_name in UNKNOWN_SALON_NAMES:
                 print(f"Auto-detected Salon Name: {fetched_name}")
                 salon_name = fetched_name
 
@@ -143,7 +161,7 @@ class SimpleIngestionAgent:
             salon_name = fetched_name
 
         # Fallback: If still unknown, check DB for existing name for this CID
-        if salon_name in ["Unknown Salon", "My Salon", "N/A"] or not salon_name:
+        if not salon_name or salon_name in UNKNOWN_SALON_NAMES:
              existing_name = db.get_salon_name(cid)
              if existing_name:
                  print(f"Fallback Salon Name from DB: {existing_name}")
@@ -157,6 +175,7 @@ class SimpleIngestionAgent:
         for review in reviews:
             review_id = review.get('id_review') or review.get('review_id')
             if not review_id:
+                print(f"  ⚠️  Skipping review — no ID found: {str(review)[:120]}")
                 continue
 
             if db.review_exists(review_id):
@@ -171,7 +190,7 @@ class SimpleIngestionAgent:
                 "cid": cid,
                 "salon_name": salon_name,
                 "author_name": review.get('profile_name', 'Anonymous'),
-                "rating": review.get('rating', {}).get('value', 0),
+                "rating": _extract_rating(review.get('rating')),
                 "original_text": review.get('review_text') or '',
                 "owner_response": review.get('owner_answer', ''),
                 "review_url": review.get('review_url', ''),
@@ -189,7 +208,7 @@ class SimpleIngestionAgent:
             if not analysis or analysis.get("error") or not analysis.get("scout"):
                 review_record.update({
                     "analysis_json": analysis or {"error": "analysis_failed"},
-                    "status": "ANALYSIS_FAILED"
+                    "status": "PENDING_ANALYSIS"
                 })
                 db.insert_review(review_record)
                 print(" - Analysis failed; saved for retry.")
