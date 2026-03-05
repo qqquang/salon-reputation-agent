@@ -2,6 +2,17 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const ALLOWED_EMAIL = 'nguyenhaiquang3@gmail.com'
 
+const POLISH_PROMPT = (draft: string) =>
+  `You are proofreading a Google review reply for a nail salon.
+
+Check this reply for cringe, cheesy, or overly marketing-speak phrases — especially anything that forces a "nail" pun or sounds like spa ad copy (e.g. "nail fun", "nail game", "nail journey", "pamper", "treat yourself", "indulge", "nail care journey").
+
+Reply text:
+"${draft}"
+
+If the reply contains any such phrases, rewrite ONLY the offending sentence(s) to sound natural and human. Return the full corrected reply only.
+If the reply is already natural and cringe-free, return exactly: OK`
+
 Deno.serve(async (req) => {
   // CORS preflight
   if (req.method === 'OPTIONS') {
@@ -99,10 +110,28 @@ Guidelines:
     }
 
     const oaiData = await oaiRes.json()
-    const draft_text = oaiData.choices?.[0]?.message?.content?.trim()
+    let draft_text = oaiData.choices?.[0]?.message?.content?.trim()
     if (!draft_text) {
       return new Response(JSON.stringify({ error: 'Empty response from OpenAI' }), { status: 502, headers: corsHeaders })
     }
+
+    // Polish pass: catch cringe phrases GPT slips through
+    try {
+      const polishedRes = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: POLISH_PROMPT(draft_text) }],
+          max_tokens: 300,
+          temperature: 0.3
+        })
+      })
+      const polished = ((await polishedRes.json()).choices?.[0]?.message?.content || '').trim()
+      if (polished && polished !== 'OK') {
+        draft_text = polished
+      }
+    } catch { /* skip polish on error, keep original */ }
 
     // ── Save to review_drafts ─────────────────────────────────────────────────
     const { data: inserted, error: insertErr } = await db
