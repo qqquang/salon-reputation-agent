@@ -45,6 +45,17 @@ const TRANSLATE_PROMPT = (text: string, category: string) =>
 Category: ${category}
 Review: "${text}"`
 
+const POLISH_PROMPT = (draft: string) =>
+  `You are proofreading a Google review reply for a nail salon.
+
+Check this reply for cringe, cheesy, or overly marketing-speak phrases — especially anything that forces a "nail" pun or sounds like spa ad copy (e.g. "nail fun", "nail game", "nail journey", "pamper", "treat yourself", "indulge", "nail care journey").
+
+Reply text:
+"${draft}"
+
+If the reply contains any such phrases, rewrite ONLY the offending sentence(s) to sound natural and human. Return the full corrected reply only.
+If the reply is already natural and cringe-free, return exactly: OK`
+
 const DRAFT_PROMPT = (text: string, author: string, salonName: string, category: string, sentimentScore: number, recentDrafts: string) => {
   const emojiInstruction = sentimentScore < 7 ? 'DO NOT use any emojis.' : 'Use 1-2 appropriate emojis.'
   return `Write a public Google review response.
@@ -261,6 +272,16 @@ Deno.serve(async (req) => {
             openaiKey
           )
         } catch { /* skip */ }
+
+        // Polish pass: catch cringe phrases GPT slips through
+        if (draftResponse) {
+          try {
+            const polished = await openAIChat(POLISH_PROMPT(draftResponse), openaiKey)
+            if (polished && polished.trim() !== 'OK') {
+              draftResponse = polished.trim()
+            }
+          } catch { /* skip polish on error, keep original */ }
+        }
 
         // Insert
         const { error: insertErr } = await db.from('reviews').insert({
