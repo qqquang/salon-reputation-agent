@@ -110,7 +110,7 @@ Guidelines:
     }
 
     const oaiData = await oaiRes.json()
-    let draft_text = oaiData.choices?.[0]?.message?.content?.trim()
+    let draft_text = (oaiData.choices?.[0]?.message?.content?.trim() || '').replace(/^["']|["']$/g, '')
     if (!draft_text) {
       return new Response(JSON.stringify({ error: 'Empty response from OpenAI' }), { status: 502, headers: corsHeaders })
     }
@@ -129,7 +129,7 @@ Guidelines:
       })
       const polished = ((await polishedRes.json()).choices?.[0]?.message?.content || '').trim()
       if (polished && polished !== 'OK') {
-        draft_text = polished
+        draft_text = polished.replace(/^["']|["']$/g, '')
       }
     } catch { /* skip polish on error, keep original */ }
 
