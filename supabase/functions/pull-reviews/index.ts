@@ -267,10 +267,10 @@ Deno.serve(async (req) => {
         // Draft
         let draftResponse = ''
         try {
-          draftResponse = await openAIChat(
+          draftResponse = (await openAIChat(
             DRAFT_PROMPT(text, author, finalSalonName, category, sentimentScore, recentDrafts),
             openaiKey
-          )
+          )).replace(/^["']|["']$/g, '')
         } catch { /* skip */ }
 
         // Polish pass: catch cringe phrases GPT slips through
@@ -278,7 +278,7 @@ Deno.serve(async (req) => {
           try {
             const polished = await openAIChat(POLISH_PROMPT(draftResponse), openaiKey)
             if (polished && polished.trim() !== 'OK') {
-              draftResponse = polished.trim()
+              draftResponse = polished.trim().replace(/^["']|["']$/g, '')
             }
           } catch { /* skip polish on error, keep original */ }
         }
