@@ -41,12 +41,16 @@ Deno.serve(async (req) => {
     // ── Fetch review ──────────────────────────────────────────────────────────
     const { data: review, error: reviewErr } = await db
       .from('reviews')
-      .select('original_text, author_name, salon_name, category, rating')
+      .select('original_text, author_name, salon_name, category, rating, owner_response')
       .eq('review_id', review_id)
       .single()
 
     if (reviewErr || !review) {
       return new Response(JSON.stringify({ error: 'Review not found' }), { status: 404, headers: corsHeaders })
+    }
+
+    if ((review.owner_response || '').trim()) {
+      return new Response(JSON.stringify({ error: 'Owner has already replied to this review on Google.' }), { status: 409, headers: corsHeaders })
     }
 
     // ── Fetch recent drafts for anti-repetition ───────────────────────────────
