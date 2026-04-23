@@ -14,7 +14,7 @@ const BRAND_CONTEXT = `Identity: Mi Nail Belleville is a modern neighborhood nai
 Tone keywords: playful, warm, caring, polished, confident
 Differentiators: detail-oriented shaping and prep, clean and comfortable environment, friendly, no-rush customer care
 Core services: gel manicure, acrylic sets, pedicure, nail art
-Avoid phrases: We are sorry for any inconvenience, Your satisfaction is our top priority, glowing review, detail-focused care, Mi NAIL, pamper, treat yourself, indulge`
+Avoid phrases: We are sorry for any inconvenience, Your satisfaction is our top priority, glowing review, detail-focused care, Mi NAIL`
 
 const SCOUT_PROMPT = (text: string, rating: number) =>
   `You are a salon review triage analyst.
@@ -45,59 +45,36 @@ const TRANSLATE_PROMPT = (text: string, category: string) =>
 Category: ${category}
 Review: "${text}"`
 
-const POLISH_PROMPT = (draft: string) =>
-  `You are proofreading a Google review reply for a nail salon.
+const DRAFT_PROMPT = (text: string, author: string, salonName: string, sentimentScore: number, recentDrafts: string) => {
+  const tone = sentimentScore >= 7 ? 'warm and celebratory' : 'empathetic and calm'
+  return `You are the owner of ${salonName}, a neighborhood nail studio. Reply to this Google review as yourself — genuine, casual, and human. Keep it brief (2-3 sentences). Don't start with "Thank you" or the reviewer's name. Don't use marketing buzzwords or forced nail puns.
 
-Check this reply for cringe, cheesy, or overly marketing-speak phrases — especially anything that forces a "nail" pun or sounds like spa ad copy (e.g. "nail fun", "nail game", "nail journey", "pamper", "treat yourself", "indulge", "nail care journey").
+Reviewer: ${author}
+Review: "${text || '(no text — rating only)'}"
+Tone: ${tone}
+${recentDrafts ? `\nAvoid repeating these recent responses:\n${recentDrafts}` : ''}
 
-Reply text:
-"${draft}"
-
-If the reply contains any such phrases, rewrite ONLY the offending sentence(s) to sound natural and human. Return the full corrected reply only.
-If the reply is already natural and cringe-free, return exactly: OK`
-
-const DRAFT_PROMPT = (text: string, author: string, salonName: string, category: string, sentimentScore: number, recentDrafts: string) => {
-  const emojiInstruction = sentimentScore < 7 ? 'DO NOT use any emojis.' : 'Use 1-2 appropriate emojis.'
-  return `Write a public Google review response.
-Response language: English only.
-Author: ${author}
-Salon: ${salonName}
-Review: "${text}"
-Context category: ${category}
-Recent Responses: ${recentDrafts || 'None.'}
-
-Business context:
-${BRAND_CONTEXT}
-
-Guidelines:
-1. Keep it natural and human: plain text, one paragraph, max 3 sentences, max 350 characters.
-2. Voice: Write as a busy owner quickly replying between clients — casual, slightly unpolished, like a real person typing on their phone. Playful and warm. Occasional minor grammar quirks are fine. Avoid spa-marketing vocabulary.
-3. Sound like a real owner: slightly conversational rhythm is good.
-4. Safety rules (strict): no personal/private details, no incentives, no asking to remove/edit reviews.
-5. If review text is empty, write a simple thank-you only (1-2 short sentences) and do not invent details.
-6. Do not imply repeat visits unless the reviewer explicitly says they returned.
-7. Do NOT start with "Thank you" or the author's name.
-8. ${emojiInstruction}
-9. Use the brand name exactly as "Mi Nail Belleville" in the final sentence.
-10. End with a warm invitation to return.
-11. Output ONLY the response text, nothing else.`
+Write only the reply text, nothing else.`
 }
 
-// ── OpenAI helper ────────────────────────────────────────────────────────────
-async function openAIChat(prompt: string, apiKey: string): Promise<string> {
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+// ── Anthropic Claude helper ───────────────────────────────────────────────────
+async function claudeChat(prompt: string, apiKey: string, model = 'claude-sonnet-4-5'): Promise<string> {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json'
+    },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
+      model,
       max_tokens: 300,
-      temperature: 0.7
+      messages: [{ role: 'user', content: prompt }]
     })
   })
-  if (!res.ok) throw new Error(`OpenAI ${res.status}: ${await res.text()}`)
+  if (!res.ok) throw new Error(`Anthropic ${res.status}: ${await res.text()}`)
   const data = await res.json()
-  return (data.choices?.[0]?.message?.content || '').trim()
+  return (data.content?.[0]?.text || '').trim()
 }
 
 // ── DataForSEO helpers ────────────────────────────────────────────────────────
@@ -176,36 +153,17 @@ Deno.serve(async (req) => {
 
     const dfsLogin = Deno.env.get('DATAFORSEO_LOGIN') || ''
     const dfsPassword = Deno.env.get('DATAFORSEO_PASSWORD') || ''
-    const openaiKey = Deno.env.get('OPENAI_API_KEY') || ''
+    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY') || ''
 
     if (!dfsLogin || !dfsPassword) {
       return new Response(JSON.stringify({ error: 'DATAFORSEO_LOGIN / DATAFORSEO_PASSWORD secrets not set' }), { status: 500, headers: JSON_HEADERS })
     }
-    if (!openaiKey) {
-      return new Response(JSON.stringify({ error: 'OPENAI_API_KEY secret not set' }), { status: 500, headers: JSON_HEADERS })
+    if (!anthropicKey) {
+      return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY secret not set' }), { status: 500, headers: JSON_HEADERS })
     }
 
     // Fetch reviews from DataForSEO
     const { reviews, salonName } = await fetchReviewsFromDFS(cid, dfsLogin, dfsPassword, 100)
-
-    // Auto-rename: if Google changed the business name, update all old DB rows for this CID
-    if (salonName) {
-      const { data: existingRow } = await db
-        .from('reviews')
-        .select('salon_name')
-        .eq('cid', cid)
-        .not('salon_name', 'in', '("Unknown Salon","N/A")')
-        .limit(1)
-        .maybeSingle()
-      const existingName = existingRow?.salon_name
-      if (existingName && existingName !== salonName) {
-        await db
-          .from('reviews')
-          .update({ salon_name: salonName, updated_at: new Date().toISOString() })
-          .eq('cid', cid)
-          .neq('salon_name', salonName)
-      }
-    }
 
     // Fetch recent drafts for anti-repetition context
     const { data: recentRows } = await db
@@ -249,7 +207,7 @@ Deno.serve(async (req) => {
         let category = 'Other'
 
         if (text.trim()) {
-          const scoutRaw = await openAIChat(SCOUT_PROMPT(text, rating), openaiKey)
+          const scoutRaw = await claudeChat(SCOUT_PROMPT(text, rating), anthropicKey, 'claude-haiku-4-5')
           try {
             const scout = JSON.parse(scoutRaw)
             sentimentScore = scout.sentiment_score ?? sentimentScore
@@ -261,27 +219,17 @@ Deno.serve(async (req) => {
         // Translate
         let vietnameseSummary = ''
         try {
-          vietnameseSummary = await openAIChat(TRANSLATE_PROMPT(text, category), openaiKey)
+          vietnameseSummary = await claudeChat(TRANSLATE_PROMPT(text, category), anthropicKey, 'claude-haiku-4-5')
         } catch { /* skip */ }
 
         // Draft
         let draftResponse = ''
         try {
-          draftResponse = (await openAIChat(
-            DRAFT_PROMPT(text, author, finalSalonName, category, sentimentScore, recentDrafts),
-            openaiKey
-          )).replace(/^["']|["']$/g, '')
+          draftResponse = await claudeChat(
+            DRAFT_PROMPT(text, author, finalSalonName, sentimentScore, recentDrafts),
+            anthropicKey
+          )
         } catch { /* skip */ }
-
-        // Polish pass: catch cringe phrases GPT slips through
-        if (draftResponse) {
-          try {
-            const polished = await openAIChat(POLISH_PROMPT(draftResponse), openaiKey)
-            if (polished && polished.trim() !== 'OK') {
-              draftResponse = polished.trim().replace(/^["']|["']$/g, '')
-            }
-          } catch { /* skip polish on error, keep original */ }
-        }
 
         // Insert
         const { error: insertErr } = await db.from('reviews').insert({
