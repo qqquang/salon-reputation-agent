@@ -50,6 +50,7 @@ const DRAFT_PROMPT = (text: string, author: string, salonName: string, sentiment
   return `You are the owner of ${salonName}, a neighborhood nail studio. Reply to this Google review as yourself — genuine, casual, and human. Keep it brief (2-3 sentences). Don't use marketing buzzwords or forced nail puns.
 
 Reviewer: ${author}
+Rating: ${sentimentScore >= 7 ? '5' : sentimentScore >= 4 ? '3' : '1'}/5
 Review: "${text || '(no text — rating only)'}"
 Tone: ${tone}
 ${recentDrafts ? `\nAvoid repeating these recent responses:\n${recentDrafts}` : ''}
