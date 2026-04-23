@@ -164,7 +164,7 @@ Deno.serve(async (req) => {
     }
 
     // Fetch reviews from DataForSEO
-    const { reviews, salonName } = await fetchReviewsFromDFS(cid, dfsLogin, dfsPassword, 100)
+    const { reviews, salonName } = await fetchReviewsFromDFS(cid, dfsLogin, dfsPassword, 200)
 
     // Fetch recent drafts for anti-repetition context
     const { data: recentRows } = await db
