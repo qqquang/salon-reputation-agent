@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
     // ── Fetch review ──────────────────────────────────────────────────────────
     const { data: review, error: reviewErr } = await db
       .from('reviews')
-      .select('original_text, author_name, salon_name, category')
+      .select('original_text, author_name, salon_name, category, rating')
       .eq('review_id', review_id)
       .single()
 
@@ -63,6 +63,7 @@ Deno.serve(async (req) => {
     const prompt = `You are the owner of ${review.salon_name}, a neighborhood nail studio. Reply to this Google review as yourself — genuine, casual, and human. Keep it brief (2-3 sentences). Don't use marketing buzzwords or forced nail puns.
 
 Reviewer: ${review.author_name}
+Rating: ${review.rating}/5
 Review: "${review.original_text || '(no text — rating only)'}"
 ${context ? `\nAvoid repeating these recent responses:\n${context}` : ''}
 
