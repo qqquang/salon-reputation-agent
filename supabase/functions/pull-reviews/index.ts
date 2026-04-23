@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
     }
 
     // Fetch reviews from DataForSEO
-    const { reviews, salonName } = await fetchReviewsFromDFS(cid, dfsLogin, dfsPassword, 200)
+    const { reviews, salonName } = await fetchReviewsFromDFS(cid, dfsLogin, dfsPassword, 50)
 
     let newCount = 0
     let skippedCount = 0
