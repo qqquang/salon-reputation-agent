@@ -154,29 +154,13 @@ Deno.serve(async (req) => {
 
     const dfsLogin = Deno.env.get('DATAFORSEO_LOGIN') || ''
     const dfsPassword = Deno.env.get('DATAFORSEO_PASSWORD') || ''
-    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY') || ''
 
     if (!dfsLogin || !dfsPassword) {
       return new Response(JSON.stringify({ error: 'DATAFORSEO_LOGIN / DATAFORSEO_PASSWORD secrets not set' }), { status: 500, headers: JSON_HEADERS })
     }
-    if (!anthropicKey) {
-      return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY secret not set' }), { status: 500, headers: JSON_HEADERS })
-    }
 
     // Fetch reviews from DataForSEO
     const { reviews, salonName } = await fetchReviewsFromDFS(cid, dfsLogin, dfsPassword, 200)
-
-    // Fetch recent drafts for anti-repetition context
-    const { data: recentRows } = await db
-      .from('reviews')
-      .select('draft_response')
-      .not('draft_response', 'is', null)
-      .order('review_date', { ascending: false })
-      .limit(20)
-    const recentDrafts = (recentRows || [])
-      .map((r: { draft_response: string }) => r.draft_response)
-      .filter(Boolean)
-      .join('\n- ')
 
     let newCount = 0
     let skippedCount = 0
@@ -202,37 +186,17 @@ Deno.serve(async (req) => {
       const finalSalonName = salonName || (body.salonName as string) || 'Mi Nail Belleville'
 
       try {
-        // Scout
+        // Defaults — used as fallback if Claude calls fail or text is empty
         let sentimentScore = [5, 9, 8, 6, 4, 2][Math.min(5, Math.max(0, 5 - Math.round(rating)))] ?? 6
         let riskFlag = false
         let category = 'Other'
-
-        if (text.trim()) {
-          const scoutRaw = await claudeChat(SCOUT_PROMPT(text, rating), anthropicKey, 'claude-haiku-4-5')
-          try {
-            const scout = JSON.parse(scoutRaw)
-            sentimentScore = scout.sentiment_score ?? sentimentScore
-            riskFlag = scout.risk_flag ?? false
-            category = scout.category ?? 'Other'
-          } catch { /* keep defaults */ }
-        }
-
-        // Translate
         let vietnameseSummary = ''
-        try {
-          vietnameseSummary = await claudeChat(TRANSLATE_PROMPT(text, category), anthropicKey, 'claude-haiku-4-5')
-        } catch { /* skip */ }
-
-        // Draft
         let draftResponse = ''
-        try {
-          draftResponse = await claudeChat(
-            DRAFT_PROMPT(text, author, finalSalonName, sentimentScore, recentDrafts),
-            anthropicKey
-          )
-        } catch { /* skip */ }
 
-        // Insert
+        // Skip Claude during bulk pull to avoid timeout — use rating-based defaults only.
+        // Drafts can be generated on demand via the Regenerate button.
+
+        // Always insert — Claude failures above must not block this
         const { error: insertErr } = await db.from('reviews').insert({
           review_id: reviewId,
           cid,
