@@ -47,7 +47,7 @@ Review: "${text}"`
 
 const DRAFT_PROMPT = (text: string, author: string, salonName: string, sentimentScore: number, recentDrafts: string) => {
   const tone = sentimentScore >= 7 ? 'warm and celebratory' : 'empathetic and calm'
-  return `You are the owner of ${salonName}, a neighborhood nail studio. Reply to this Google review as yourself — genuine, casual, and human. Keep it brief (2-3 sentences). Don't start with "Thank you" or the reviewer's name. Don't use marketing buzzwords or forced nail puns.
+  return `You are the owner of ${salonName}, a neighborhood nail studio. Reply to this Google review as yourself — genuine, casual, and human. Keep it brief (2-3 sentences). Don't use marketing buzzwords or forced nail puns.
 
 Reviewer: ${author}
 Review: "${text || '(no text — rating only)'}"
