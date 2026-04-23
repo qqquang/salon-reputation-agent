@@ -59,54 +59,45 @@ Deno.serve(async (req) => {
 
     const context = (recent || []).map((d: { draft_text: string }) => d.draft_text).join('\n---\n')
 
-    // ── Build prompt (mirrors Python pipeline brand voice) ────────────────────
-    const prompt = `Write a public Google review response.
-Response language: English only.
-Author: ${review.author_name}
-Salon: ${review.salon_name}
-Review: "${review.original_text}"
-Context category: ${review.category || 'General'}
-Recent responses to avoid repeating:
-${context || 'None'}
+    // ── Build prompt ──────────────────────────────────────────────────────────
+    const prompt = `You are the owner of ${review.salon_name}, a neighborhood nail studio. Reply to this Google review as yourself — genuine, casual, and human. Keep it brief (2-3 sentences). Don't start with "Thank you" or the reviewer's name. Don't use marketing buzzwords or forced nail puns.
 
-Guidelines:
-1. Plain text, one paragraph, max 3 sentences, max 350 characters.
-2. Voice: playful, warm, caring, and neighborhood-friendly.
-3. Do NOT start with "Thank you" or the author's name.
-4. Do NOT use em-dashes (—), bullet points, or formal language.
-5. End with a warm invitation to return.
-6. Output ONLY the response text, nothing else.`
+Reviewer: ${review.author_name}
+Review: "${review.original_text || '(no text — rating only)'}"
+${context ? `\nAvoid repeating these recent responses:\n${context}` : ''}
 
-    // ── Call OpenAI ───────────────────────────────────────────────────────────
-    const oaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+Write only the reply text, nothing else.`
+
+    // ── Call Anthropic Claude ─────────────────────────────────────────────────
+    const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-        'Content-Type': 'application/json'
+        'x-api-key': Deno.env.get('ANTHROPIC_API_KEY') || '',
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 200,
-        temperature: 0.9
+        model: 'claude-sonnet-4-5',
+        max_tokens: 300,
+        messages: [{ role: 'user', content: prompt }]
       })
     })
 
-    if (!oaiRes.ok) {
-      const err = await oaiRes.text()
-      return new Response(JSON.stringify({ error: 'OpenAI error', detail: err }), { status: 502, headers: corsHeaders })
+    if (!claudeRes.ok) {
+      const err = await claudeRes.text()
+      return new Response(JSON.stringify({ error: 'Anthropic error', detail: err }), { status: 502, headers: corsHeaders })
     }
 
-    const oaiData = await oaiRes.json()
-    const draft_text = oaiData.choices?.[0]?.message?.content?.trim()
+    const claudeData = await claudeRes.json()
+    const draft_text = claudeData.content?.[0]?.text?.trim()
     if (!draft_text) {
-      return new Response(JSON.stringify({ error: 'Empty response from OpenAI' }), { status: 502, headers: corsHeaders })
+      return new Response(JSON.stringify({ error: 'Empty response from Anthropic' }), { status: 502, headers: corsHeaders })
     }
 
     // ── Save to review_drafts ─────────────────────────────────────────────────
     const { data: inserted, error: insertErr } = await db
       .from('review_drafts')
-      .insert({ review_id, draft_text, is_original: false, model: 'gpt-4o-mini' })
+      .insert({ review_id, draft_text, is_original: false, model: 'claude-sonnet-4-5' })
       .select('id, draft_text, is_favourite, is_original, created_at')
       .single()
 
