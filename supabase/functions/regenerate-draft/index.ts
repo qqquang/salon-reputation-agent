@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
     const context = (recent || []).map((d: { draft_text: string }) => d.draft_text).join('\n---\n')
 
     // ── Build prompt ──────────────────────────────────────────────────────────
-    const prompt = `You are the owner of ${review.salon_name}, a neighborhood nail studio. Reply to this Google review as yourself — genuine, casual, and human. Keep it brief (2-3 sentences). Don't start with "Thank you" or the reviewer's name. Don't use marketing buzzwords or forced nail puns.
+    const prompt = `You are the owner of ${review.salon_name}, a neighborhood nail studio. Reply to this Google review as yourself — genuine, casual, and human. Keep it brief (2-3 sentences). Don't use marketing buzzwords or forced nail puns.
 
 Reviewer: ${review.author_name}
 Review: "${review.original_text || '(no text — rating only)'}"
