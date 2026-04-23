@@ -104,7 +104,7 @@ class IntelligenceRouter:
         opening = opening_styles[seed % len(opening_styles)]
         closing = closing_styles[(seed // 7) % len(closing_styles)]
         closing_options = [
-            "Can't wait to see you again soon!",
+            "We are excited to pamper you again soon.",
             "Thanks for trusting us with your nails.",
             f"We look forward to your next set at {salon_name}.",
             "See you soon for your next nail refresh.",
@@ -469,10 +469,12 @@ class IntelligenceRouter:
         brand_context = self._build_brand_context()
         style_hint = self._build_style_hint(review_data, sentiment_score, category)
 
+        rating = review_data.get('rating', 0)
         prompt_template = self.prompts.get('draft', "Write a response to: {text}")
         prompt = prompt_template.format(
             text=text,
             author=author,
+            rating=rating,
             category=category,
             salon_name=salon_name,
             emoji_instruction=emoji_instruction,
