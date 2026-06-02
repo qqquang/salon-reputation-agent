@@ -41,12 +41,16 @@ Deno.serve(async (req) => {
     // ── Fetch review ──────────────────────────────────────────────────────────
     const { data: review, error: reviewErr } = await db
       .from('reviews')
-      .select('original_text, author_name, salon_name, category')
+      .select('original_text, author_name, salon_name, category, rating, owner_response')
       .eq('review_id', review_id)
       .single()
 
     if (reviewErr || !review) {
       return new Response(JSON.stringify({ error: 'Review not found' }), { status: 404, headers: corsHeaders })
+    }
+
+    if ((review.owner_response || '').trim()) {
+      return new Response(JSON.stringify({ error: 'Owner has already replied to this review on Google.' }), { status: 409, headers: corsHeaders })
     }
 
     // ── Fetch recent drafts for anti-repetition ───────────────────────────────
@@ -60,9 +64,10 @@ Deno.serve(async (req) => {
     const context = (recent || []).map((d: { draft_text: string }) => d.draft_text).join('\n---\n')
 
     // ── Build prompt ──────────────────────────────────────────────────────────
-    const prompt = `You are the owner of ${review.salon_name}, a neighborhood nail studio. Reply to this Google review as yourself — genuine, casual, and human. Keep it brief (2-3 sentences). Don't start with "Thank you" or the reviewer's name. Don't use marketing buzzwords or forced nail puns.
+    const prompt = `You are the owner of ${review.salon_name}, a neighborhood nail studio. Reply to this Google review as yourself — genuine, casual, and human. Keep it brief (2-3 sentences). Don't use marketing buzzwords or forced nail puns.
 
 Reviewer: ${review.author_name}
+Rating: ${review.rating}/5
 Review: "${review.original_text || '(no text — rating only)'}"
 ${context ? `\nAvoid repeating these recent responses:\n${context}` : ''}
 

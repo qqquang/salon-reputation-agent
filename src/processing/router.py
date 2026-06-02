@@ -469,10 +469,12 @@ class IntelligenceRouter:
         brand_context = self._build_brand_context()
         style_hint = self._build_style_hint(review_data, sentiment_score, category)
 
+        rating = review_data.get('rating', 0)
         prompt_template = self.prompts.get('draft', "Write a response to: {text}")
         prompt = prompt_template.format(
             text=text,
             author=author,
+            rating=rating,
             category=category,
             salon_name=salon_name,
             emoji_instruction=emoji_instruction,
