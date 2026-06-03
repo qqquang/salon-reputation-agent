@@ -28,7 +28,7 @@ class SupabaseClient:
             # If count is not None and > 0, it exists. 
             # Note: exact count might require head=true or similar depending on implementation, 
             # but select with filter usually returns data.
-            return len(response.data) > 0
+            return len(response.data or []) > 0
         except Exception as e:
             print(f"Error checking review existence: {e}")
             return False
@@ -39,7 +39,7 @@ class SupabaseClient:
             print(f"[DRY_RUN] Would insert review {review_data.get('review_id')} with status={review_data.get('status')}")
             return
         try:
-            self.client.table("reviews").insert(review_data).execute()
+            self.client.table("reviews").upsert(review_data, on_conflict="review_id").execute()
             print(f"Inserted review {review_data.get('review_id')}")
         except Exception as e:
             print(f"Error inserting review: {e}")
@@ -93,6 +93,30 @@ class SupabaseClient:
         except Exception as e:
             print(f"Error fetching recent review context: {e}")
             return []
+
+    def update_salon_name_by_cid(self, cid: str, new_name: str) -> int:
+        """
+        Updates salon_name for all reviews with the given CID.
+        Called automatically when Google renames a business.
+        Returns the number of rows updated.
+        """
+        if settings.DRY_RUN or self.client is None:
+            print(f"[DRY_RUN] Would rename all reviews for CID {cid} to '{new_name}'")
+            return 0
+        try:
+            from datetime import datetime, timezone
+            response = self.client.table("reviews") \
+                .update({"salon_name": new_name, "updated_at": datetime.now(timezone.utc).isoformat()}) \
+                .eq("cid", cid) \
+                .neq("salon_name", new_name) \
+                .execute()
+            count = len(response.data) if response.data else 0
+            if count > 0:
+                print(f"  ✅ Auto-renamed {count} reviews for CID {cid} → '{new_name}'")
+            return count
+        except Exception as e:
+            print(f"Error updating salon name for CID {cid}: {e}")
+            return 0
 
     def get_salon_name(self, cid: str) -> str:
         """
