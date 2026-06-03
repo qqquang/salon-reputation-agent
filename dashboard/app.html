@@ -1783,21 +1783,42 @@
         }
 
         const { data: { session } } = await db.auth.getSession();
-        const res = await fetch(`${SUPABASE_URL}/functions/v1/pull-reviews`, {
+        const headers = {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': SUPABASE_ANON,
+          'Content-Type': 'application/json'
+        };
+
+        // Phase 1: Post task to DataForSEO — returns task_id immediately
+        const postRes = await fetch(`${SUPABASE_URL}/functions/v1/pull-reviews`, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'apikey': SUPABASE_ANON,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ cid: cidRow.cid, salonName: salon })
+          headers,
+          body: JSON.stringify({ action: 'post', cid: cidRow.cid, salonName: salon })
+        });
+        const postData = await postRes.json();
+        if (!postRes.ok || !postData.task_id) {
+          document.getElementById('pull-toast').classList.remove('show');
+          showToast(`Error: ${postData.error || 'Failed to start pull'}`, true);
+          return;
+        }
+
+        // Phase 2: Wait ~45s then fetch results (DataForSEO typically takes 40-55s)
+        showToast('Fetching reviews from Google… this takes about 45 seconds ☕', false, 50000);
+        await new Promise(r => setTimeout(r, 45000));
+
+        const fetchRes = await fetch(`${SUPABASE_URL}/functions/v1/pull-reviews`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ action: 'fetch', task_id: postData.task_id, cid: cidRow.cid, salonName: salon })
         });
 
         document.getElementById('pull-toast').classList.remove('show');
-        const data = await res.json();
+        const data = await fetchRes.json();
 
-        if (!res.ok) {
+        if (!fetchRes.ok) {
           showToast(`Error: ${data.error || 'Pull failed'}`, true);
+        } else if (data.pending) {
+          showToast('Still processing — please try again in 10 seconds', true, 5000);
         } else {
           const msg = `Done! ${data.new} new review${data.new !== 1 ? 's' : ''} added for ${salon}, ${data.skipped} already existed.`;
           showToast(msg, false, 6000);
