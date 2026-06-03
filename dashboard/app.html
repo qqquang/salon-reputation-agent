@@ -1820,9 +1820,29 @@
         } else if (data.pending) {
           showToast('Still processing — please try again in 10 seconds', true, 5000);
         } else {
-          const msg = `Done! ${data.new} new review${data.new !== 1 ? 's' : ''} added for ${salon}, ${data.skipped} already existed.`;
-          showToast(msg, false, 6000);
-          if (data.new > 0) setTimeout(() => loadReviews(true), 1000);
+          const newCount = data.new || 0;
+          showToast(`${newCount} new review${newCount !== 1 ? 's' : ''} added. Generating AI drafts…`, false, 60000);
+          if (newCount > 0) setTimeout(() => loadReviews(true), 500);
+
+          // Phase 3: Generate Claude drafts for all reviews missing them (loop until done)
+          let totalDrafts = 0;
+          let remaining = true;
+          while (remaining) {
+            const draftRes = await fetch(`${SUPABASE_URL}/functions/v1/pull-reviews`, {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({ action: 'drafts' })
+            });
+            const draftData = await draftRes.json();
+            totalDrafts += draftData.drafts_generated || 0;
+            remaining = (draftData.pending_remaining || 0) > 0 && (draftData.drafts_generated || 0) > 0;
+            if (remaining) await new Promise(r => setTimeout(r, 1000));
+          }
+
+          document.getElementById('pull-toast').classList.remove('show');
+          const msg = `Done! ${newCount} new review${newCount !== 1 ? 's' : ''} added, ${totalDrafts} AI draft${totalDrafts !== 1 ? 's' : ''} generated.`;
+          showToast(msg, false, 7000);
+          if (totalDrafts > 0) setTimeout(() => loadReviews(true), 500);
         }
       } catch (err) {
         document.getElementById('pull-toast').classList.remove('show');

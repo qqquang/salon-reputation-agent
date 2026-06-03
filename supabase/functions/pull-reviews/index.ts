@@ -9,6 +9,32 @@ const CORS = {
 }
 const JSON_HEADERS = { ...CORS, 'Content-Type': 'application/json' }
 
+// ── Claude draft helper ───────────────────────────────────────────────────────
+async function generateDraft(text: string, author: string, salonName: string, rating: number, apiKey: string): Promise<string> {
+  const tone = rating >= 4 ? 'warm and celebratory' : 'empathetic and calm'
+  const prompt = `You are the owner of ${salonName}, a neighborhood nail studio. Reply to this Google review as yourself — genuine, casual, and human. Keep it brief (2-3 sentences). Don't use marketing buzzwords or forced nail puns.
+
+Reviewer: ${author}
+Rating: ${rating}/5
+Review: "${text || '(no text — rating only)'}"
+Tone: ${tone}
+
+Write only the reply text, nothing else.`
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 200, messages: [{ role: 'user', content: prompt }] })
+  })
+  if (!res.ok) throw new Error(`Anthropic ${res.status}`)
+  const data = await res.json()
+  return (data.content?.[0]?.text || '').trim()
+}
+
 // ── DataForSEO helpers ────────────────────────────────────────────────────────
 function dfsAuth(login: string, password: string) {
   return 'Basic ' + btoa(`${login}:${password}`)
@@ -177,6 +203,77 @@ Deno.serve(async (req) => {
         new: newCount,
         skipped: skippedCount,
         errors: errors.length ? errors : undefined
+      }), { headers: JSON_HEADERS })
+    }
+
+    // ── Phase 3: Generate Claude drafts for reviews missing them ─────────────
+    if (action === 'drafts') {
+      const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY') || ''
+      if (!anthropicKey) {
+        return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY not set' }), { status: 500, headers: JSON_HEADERS })
+      }
+
+      // Fetch up to 20 reviews with no draft and no owner response
+      const { data: pending, error: fetchErr } = await db
+        .from('reviews')
+        .select('review_id, original_text, author_name, salon_name, rating, owner_response')
+        .or('draft_response.is.null,draft_response.eq.')
+        .is('owner_response', null)
+        .limit(20)
+
+      if (fetchErr) {
+        return new Response(JSON.stringify({ error: fetchErr.message }), { status: 500, headers: JSON_HEADERS })
+      }
+
+      // Also include reviews where owner_response is empty string
+      const { data: pendingEmpty } = await db
+        .from('reviews')
+        .select('review_id, original_text, author_name, salon_name, rating, owner_response')
+        .or('draft_response.is.null,draft_response.eq.')
+        .eq('owner_response', '')
+        .limit(20)
+
+      const allPending = [...(pending || []), ...(pendingEmpty || [])]
+        .filter((v, i, a) => a.findIndex(x => x.review_id === v.review_id) === i)
+        .slice(0, 20)
+
+      let draftCount = 0
+      const draftErrors: string[] = []
+
+      for (const review of allPending) {
+        try {
+          const draft = await generateDraft(
+            review.original_text || '',
+            review.author_name || 'Anonymous',
+            review.salon_name || 'Mi Nail Belleville',
+            review.rating || 0,
+            anthropicKey
+          )
+
+          // Save to review_drafts table
+          await db.from('review_drafts').insert({
+            review_id: review.review_id,
+            draft_text: draft,
+            is_original: true,
+            model: 'claude-haiku-4-5'
+          })
+
+          // Also update the legacy draft_response column
+          await db.from('reviews')
+            .update({ draft_response: draft })
+            .eq('review_id', review.review_id)
+
+          draftCount++
+        } catch (e) {
+          draftErrors.push(`${review.review_id}: ${String(e)}`)
+        }
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        drafts_generated: draftCount,
+        pending_remaining: allPending.length - draftCount,
+        errors: draftErrors.length ? draftErrors : undefined
       }), { headers: JSON_HEADERS })
     }
 
